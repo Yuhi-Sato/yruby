@@ -45,4 +45,20 @@ class YRubyTest < Minitest::Test
   def test_multiple_statements_with_expressions
     assert_equal 7, @vm.run("1 + 2; 3 + 4")
   end
+
+  def test_local_variable_assignment
+    assert_equal 10, @vm.run("a = 10")
+  end
+
+  def test_local_variable_read
+    assert_equal 10, @vm.run("a = 10; a")
+  end
+
+  def test_local_variable_with_expression
+    assert_equal 15, @vm.run("a = 10; a + 5")
+  end
+
+  def test_multiple_local_variables
+    assert_equal 30, @vm.run("a = 10; b = 20; a + b")
+  end
 end

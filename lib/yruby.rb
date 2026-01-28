@@ -1,5 +1,5 @@
 class MinRuby
-  attr_accessor :parser, :compiler, :stack, :pc, :sp
+  attr_accessor :parser, :compiler, :stack, :pc, :sp, :ep
 
   def initialize(parser, compiler)
     @parser = parser
@@ -8,6 +8,7 @@ class MinRuby
 
     @pc = 0
     @sp = 0
+    @ep = 0
   end
 
   def parse(source)
@@ -22,6 +23,10 @@ class MinRuby
     ast = parse(source)
 
     iseq = compile(ast)
+
+    self.pc = 0
+    self.sp = iseq.local_size
+    self.ep = sp - 1
 
     loop do
       break if pc >= iseq.size
