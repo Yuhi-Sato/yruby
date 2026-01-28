@@ -43,6 +43,30 @@ class YRuby
           compile_node(node.receiver, iseq)
           compile_node(node.arguments.arguments[0], iseq)
           iseq.push(YRuby::Instructions::OptDiv.new)
+        when :==
+          compile_node(node.receiver, iseq)
+          compile_node(node.arguments.arguments[0], iseq)
+          iseq.push(YRuby::Instructions::OptEq.new)
+        when :!=
+          compile_node(node.receiver, iseq)
+          compile_node(node.arguments.arguments[0], iseq)
+          iseq.push(YRuby::Instructions::OptNeq.new)
+        when :<
+          compile_node(node.receiver, iseq)
+          compile_node(node.arguments.arguments[0], iseq)
+          iseq.push(YRuby::Instructions::OptLt.new)
+        when :>
+          compile_node(node.receiver, iseq)
+          compile_node(node.arguments.arguments[0], iseq)
+          iseq.push(YRuby::Instructions::OptGt.new)
+        when :<=
+          compile_node(node.receiver, iseq)
+          compile_node(node.arguments.arguments[0], iseq)
+          iseq.push(YRuby::Instructions::OptLe.new)
+        when :>=
+          compile_node(node.receiver, iseq)
+          compile_node(node.arguments.arguments[0], iseq)
+          iseq.push(YRuby::Instructions::OptGe.new)
         else
           raise "Unknown call: #{node.name}"
         end

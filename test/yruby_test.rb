@@ -61,4 +61,36 @@ class YRubyTest < Minitest::Test
   def test_multiple_local_variables
     assert_equal 30, @vm.run("a = 10; b = 20; a + b")
   end
+
+  def test_equal
+    assert_equal true, @vm.run("1 == 1")
+    assert_equal false, @vm.run("1 == 2")
+  end
+
+  def test_not_equal
+    assert_equal true, @vm.run("1 != 2")
+    assert_equal false, @vm.run("1 != 1")
+  end
+
+  def test_less_than
+    assert_equal true, @vm.run("1 < 2")
+    assert_equal false, @vm.run("2 < 1")
+  end
+
+  def test_greater_than
+    assert_equal true, @vm.run("2 > 1")
+    assert_equal false, @vm.run("1 > 2")
+  end
+
+  def test_less_than_or_equal
+    assert_equal true, @vm.run("1 <= 2")
+    assert_equal true, @vm.run("1 <= 1")
+    assert_equal false, @vm.run("2 <= 1")
+  end
+
+  def test_greater_than_or_equal
+    assert_equal true, @vm.run("2 >= 1")
+    assert_equal true, @vm.run("1 >= 1")
+    assert_equal false, @vm.run("1 >= 2")
+  end
 end
