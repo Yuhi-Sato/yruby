@@ -15,9 +15,12 @@ class YRuby
       when Prism::ProgramNode
         compile_node(node.statements, iseq)
       when Prism::StatementsNode
-        node.body.each do |stmt|
+        body = node.body
+        body[0...-1].each do |stmt|
           compile_node(stmt, iseq)
+          iseq.push(YRuby::Instructions::Pop.new)
         end
+        compile_node(body.last, iseq) if body.last
       when Prism::IntegerNode
         iseq.push(YRuby::Instructions::PutObject.new(node.value))
       when Prism::CallNode
