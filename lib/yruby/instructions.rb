@@ -1,0 +1,6 @@
+require_relative 'instructions/base'
+require_relative 'instructions/opt_div'
+require_relative 'instructions/opt_minus'
+require_relative 'instructions/opt_mult'
+require_relative 'instructions/opt_plus'
+require_relative 'instructions/putobject'
