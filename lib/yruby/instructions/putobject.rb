@@ -11,7 +11,7 @@ class YRuby::Instructions
     end
 
     def to_s
-      "putobject #{object.inspect}"
+      "#{super} #{object.inspect}"
     end
   end
 end

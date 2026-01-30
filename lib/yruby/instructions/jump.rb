@@ -11,7 +11,7 @@ class YRuby::Instructions
     end
 
     def to_s
-      "jump #{dst}"
+      "#{super} #{dst}"
     end
   end
 end

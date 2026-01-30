@@ -11,7 +11,7 @@ class YRuby::Instructions
     end
 
     def to_s
-      "getlocal #{index}"
+      "#{super} #{index}"
     end
   end
 end

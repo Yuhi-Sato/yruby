@@ -5,7 +5,9 @@ class YRuby::Instructions
     end
 
     def to_s
-      raise NotImplementedError
+      self.class.name.split("::").last
+      .gsub(/([a-z\d])([A-Z])/, '\1_\2')
+      .downcase
     end
   end
 end
