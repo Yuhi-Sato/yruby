@@ -11,5 +11,9 @@ class YRuby::Instructions
       vm.stack[vm.ep - index] = value
       vm.stack_push(value)
     end
+
+    def to_s
+      "setlocal #{index}"
+    end
   end
 end

@@ -10,5 +10,9 @@ class YRuby::Instructions
       value = vm.stack_pop
       vm.pc = dst - 1 if value
     end
+
+    def to_s
+      "branchif #{dst}"
+    end
   end
 end

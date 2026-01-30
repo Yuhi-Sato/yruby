@@ -9,5 +9,9 @@ class YRuby::Instructions
     def call(vm)
       vm.stack_push(vm.stack[vm.ep - index])
     end
+
+    def to_s
+      "getlocal #{index}"
+    end
   end
 end
