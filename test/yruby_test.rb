@@ -93,4 +93,32 @@ class YRubyTest < Minitest::Test
     assert_equal true, @vm.run("1 >= 1")
     assert_equal false, @vm.run("1 >= 2")
   end
+
+  def test_if_true
+    assert_equal 10, @vm.run("if 1 == 1; 10; end")
+  end
+
+  def test_if_false
+    assert_nil @vm.run("if 1 == 2; 10; end")
+  end
+
+  def test_if_with_variable
+    assert_equal 20, @vm.run("a = 5; if a == 5; 20; end")
+  end
+
+  def test_if_without_else_returns_nil_when_condition_is_false
+    assert_nil @vm.run("if 1 > 2; 100; end")
+  end
+
+  def test_if_else_true_branch
+    assert_equal 10, @vm.run("if 1 == 1; 10; else; 20; end")
+  end
+
+  def test_if_else_false_branch
+    assert_equal 20, @vm.run("if 1 == 2; 10; else; 20; end")
+  end
+
+  def test_if_else_with_variable
+    assert_equal 99, @vm.run("a = 3; if a > 5; 1; else; 99; end")
+  end
 end

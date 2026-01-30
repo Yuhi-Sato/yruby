@@ -1,9 +1,10 @@
 class MinRuby
   attr_accessor :parser, :compiler, :stack, :pc, :sp, :ep
 
-  def initialize(parser, compiler)
+  def initialize(parser, compiler, debug: false)
     @parser = parser
     @compiler = compiler
+    @debug = debug
     @stack = []
 
     @pc = 0
@@ -23,6 +24,8 @@ class MinRuby
     ast = parse(source)
 
     iseq = compile(ast)
+
+    puts iseq.disasm if @debug
 
     self.pc = 0
     self.sp = iseq.local_size
