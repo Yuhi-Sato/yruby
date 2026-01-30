@@ -13,7 +13,7 @@ class YRuby::Instructions
     end
 
     def to_s
-      "setlocal #{index}"
+      "#{super} #{index}"
     end
   end
 end
