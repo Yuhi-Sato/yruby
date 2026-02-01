@@ -121,4 +121,24 @@ class YRubyTest < Minitest::Test
   def test_if_else_with_variable
     assert_equal 99, @vm.run("a = 3; if a > 5; 1; else; 99; end")
   end
+
+  def test_string_literal
+    assert_equal "hello", @vm.run('"hello"')
+  end
+
+  def test_puts_string
+    assert_output("hello\n") { @vm.run('puts("hello")') }
+  end
+
+  def test_puts_integer
+    assert_output("123\n") { @vm.run('puts(123)') }
+  end
+
+  def test_puts_returns_nil
+    assert_nil @vm.run('puts("hello")')
+  end
+
+  def test_puts_variable
+    assert_output("42\n") { @vm.run('a = 42; puts(a)') }
+  end
 end
