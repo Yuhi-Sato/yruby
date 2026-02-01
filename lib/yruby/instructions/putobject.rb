@@ -1,5 +1,5 @@
 class YRuby::Instructions
-  class PutObject < Base
+  class Putobject < Base
     attr_reader :object
 
     def initialize(object)

@@ -1,5 +1,5 @@
 class YRuby::Instructions
-  class GetLocal < Base
+  class Getlocal < Base
     attr_reader :index
 
     def initialize(index)

@@ -24,7 +24,7 @@ class YRuby
         end
         compile_node(body.last, iseq) if body.last
       when Prism::IntegerNode
-        iseq.emit(YRuby::Instructions::PutObject.new(node.value))
+        iseq.emit(YRuby::Instructions::Putobject.new(node.value))
       when Prism::CallNode
         case node.name
         when :+
@@ -73,10 +73,10 @@ class YRuby
       when Prism::LocalVariableWriteNode
         compile_node(node.value, iseq)
         index = iseq.local_table[node.name]
-        iseq.emit(YRuby::Instructions::SetLocal.new(index))
+        iseq.emit(YRuby::Instructions::Setlocal.new(index))
       when Prism::LocalVariableReadNode
         index = iseq.local_table[node.name]
-        iseq.emit(YRuby::Instructions::GetLocal.new(index))
+        iseq.emit(YRuby::Instructions::Getlocal.new(index))
       when Prism::IfNode
         compile_node(node.predicate, iseq)
         branchunless_idx = iseq.size
@@ -85,7 +85,7 @@ class YRuby
         jump_idx = iseq.size
         iseq.reserve_slot(jump_idx)
         else_idx = iseq.size
-        iseq.set_slot(branchunless_idx, YRuby::Instructions::BranchUnless.new(else_idx))
+        iseq.set_slot(branchunless_idx, YRuby::Instructions::Branchunless.new(else_idx))
         if node.subsequent
           compile_node(node.subsequent, iseq)
         else

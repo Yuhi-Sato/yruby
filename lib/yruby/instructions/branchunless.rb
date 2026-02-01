@@ -1,5 +1,5 @@
 class YRuby::Instructions
-  class BranchUnless < Base
+  class Branchunless < Base
     attr_reader :dst
 
     def initialize(dst)
