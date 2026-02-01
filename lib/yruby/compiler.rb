@@ -25,6 +25,8 @@ class YRuby
         compile_node(body.last, iseq) if body.last
       when Prism::IntegerNode
         iseq.emit(YRuby::Instructions::Putobject.new(node.value))
+      when Prism::StringNode
+        iseq.emit(YRuby::Instructions::Putstring.new(node.unescaped))
       when Prism::CallNode
         case node.name
         when :+
@@ -68,7 +70,14 @@ class YRuby
           compile_node(node.arguments.arguments[0], iseq)
           iseq.emit(YRuby::Instructions::OptGe.new)
         else
-          raise "Unknown call: #{node.name}"
+          if node.receiver.nil?
+            iseq.emit(YRuby::Instructions::Putself.new)
+            args = node.arguments&.arguments || []
+            args.each { |arg| compile_node(arg, iseq) }
+            iseq.emit(YRuby::Instructions::OptSendWithoutBlock.new(node.name, args.size))
+          else
+            raise "Unknown call: #{node.name}"
+          end
         end
       when Prism::LocalVariableWriteNode
         compile_node(node.value, iseq)
@@ -89,7 +98,7 @@ class YRuby
         if node.subsequent
           compile_node(node.subsequent, iseq)
         else
-          iseq.emit(YRuby::Instructions::PutObject.new(nil))
+          iseq.emit(YRuby::Instructions::Putobject.new(nil))
         end
         iseq.set_slot(jump_idx, YRuby::Instructions::Jump.new(iseq.size))
       when Prism::ElseNode
