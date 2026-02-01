@@ -1,10 +1,12 @@
 class YRuby
   class Iseq
-    attr_reader :insns, :local_table
+    attr_reader :insns, :local_table, :type, :param_size
 
-    def initialize(insns: [], local_table: {})
+    def initialize(insns: [], local_table: {}, type: :top, param_size: 0)
       @insns = insns
       @local_table = local_table
+      @type = type
+      @param_size = param_size
     end
 
     def emit(instruction)

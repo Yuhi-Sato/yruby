@@ -141,4 +141,16 @@ class YRubyTest < Minitest::Test
   def test_puts_variable
     assert_output("42\n") { @vm.run('a = 42; puts(a)') }
   end
+
+  def test_times_with_puts
+    assert_output("0\n1\n2\n") { @vm.run('3.times { |i| puts(i) }') }
+  end
+
+  def test_times_returns_receiver
+    assert_equal 3, @vm.run('3.times { |i| i }')
+  end
+
+  def test_times_zero
+    assert_equal 0, @vm.run('0.times { |i| i }')
+  end
 end
