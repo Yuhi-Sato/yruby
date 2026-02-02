@@ -1,9 +1,11 @@
+require 'forwardable'
+
 class MinRuby
   STACK_SIZE = 256.freeze
   ControlFrame = Struct.new(:iseq, :pc, :sp, :ep, :type, keyword_init: true)
 
-  attr_accessor :stack
-  attr_reader :parser, :compiler
+  attr_accessor :stack, :cfp
+  attr_reader :parser, :compiler, :debug
 
   def initialize(parser, compiler, debug: false)
     @parser = parser
@@ -25,7 +27,7 @@ class MinRuby
     ast = parse(source)
     iseq = compile(ast)
 
-    puts iseq.disasm if @debug
+    puts iseq.disasm if debug
 
     push_frame(iseq: iseq, type: :top, sp: 0)
     execute
@@ -52,39 +54,12 @@ class MinRuby
     stack[sp]
   end
 
-  # -- CFP delegation --
-
   def current_cf
-    @stack[@cfp]
+    stack[cfp]
   end
 
-  def pc
-    current_cf.pc
-  end
-
-  def pc=(val)
-    current_cf.pc = val
-  end
-
-  def sp
-    current_cf.sp
-  end
-
-  def sp=(val)
-    current_cf.sp = val
-  end
-
-  def ep
-    current_cf.ep
-  end
-
-  def ep=(val)
-    current_cf.ep = val
-  end
-
-  def current_iseq
-    current_cf.iseq
-  end
+  extend Forwardable
+  def_delegators :current_cf, :pc, :pc=, :sp, :sp=, :ep, :ep=, :iseq
 
   private
 
@@ -104,8 +79,8 @@ class MinRuby
       ep: frame_ep,
       type: type
     )
-    @cfp -= 1
-    @stack[@cfp] = cf
+    self.cfp -= 1
+    self.stack[cfp] = cf
   end
 
   def pop_frame
@@ -115,7 +90,7 @@ class MinRuby
   def execute
     catch(:leave) do
       loop do
-        current_iseq[pc].call(self)
+        iseq[pc].call(self)
         self.pc += 1
       end
     end
