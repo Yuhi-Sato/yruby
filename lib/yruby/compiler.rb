@@ -7,6 +7,7 @@ class YRuby
       iseq = YRuby::Iseq.new
 
       compile_node(ast, iseq)
+      iseq.emit(YRuby::Instructions::Leave.new)
 
       iseq
     end
@@ -28,55 +29,67 @@ class YRuby
       when Prism::StringNode
         iseq.emit(YRuby::Instructions::Putstring.new(node.unescaped))
       when Prism::CallNode
-        case node.name
-        when :+
-          compile_node(node.receiver, iseq)
-          compile_node(node.arguments.arguments[0], iseq)
-          iseq.emit(YRuby::Instructions::OptPlus.new)
-        when :-
-          compile_node(node.receiver, iseq)
-          compile_node(node.arguments.arguments[0], iseq)
-          iseq.emit(YRuby::Instructions::OptMinus.new)
-        when :*
-          compile_node(node.receiver, iseq)
-          compile_node(node.arguments.arguments[0], iseq)
-          iseq.emit(YRuby::Instructions::OptMult.new)
-        when :/
-          compile_node(node.receiver, iseq)
-          compile_node(node.arguments.arguments[0], iseq)
-          iseq.emit(YRuby::Instructions::OptDiv.new)
-        when :==
-          compile_node(node.receiver, iseq)
-          compile_node(node.arguments.arguments[0], iseq)
-          iseq.emit(YRuby::Instructions::OptEq.new)
-        when :!=
-          compile_node(node.receiver, iseq)
-          compile_node(node.arguments.arguments[0], iseq)
-          iseq.emit(YRuby::Instructions::OptNeq.new)
-        when :<
-          compile_node(node.receiver, iseq)
-          compile_node(node.arguments.arguments[0], iseq)
-          iseq.emit(YRuby::Instructions::OptLt.new)
-        when :>
-          compile_node(node.receiver, iseq)
-          compile_node(node.arguments.arguments[0], iseq)
-          iseq.emit(YRuby::Instructions::OptGt.new)
-        when :<=
-          compile_node(node.receiver, iseq)
-          compile_node(node.arguments.arguments[0], iseq)
-          iseq.emit(YRuby::Instructions::OptLe.new)
-        when :>=
-          compile_node(node.receiver, iseq)
-          compile_node(node.arguments.arguments[0], iseq)
-          iseq.emit(YRuby::Instructions::OptGe.new)
-        else
-          if node.receiver.nil?
-            iseq.emit(YRuby::Instructions::Putself.new)
-            args = node.arguments&.arguments || []
-            args.each { |arg| compile_node(arg, iseq) }
-            iseq.emit(YRuby::Instructions::OptSendWithoutBlock.new(node.name, args.size))
+        if node.block
+          if node.receiver
+            compile_node(node.receiver, iseq)
           else
-            raise "Unknown call: #{node.name}"
+            iseq.emit(YRuby::Instructions::Putself.new)
+          end
+          args = node.arguments&.arguments || []
+          args.each { |arg| compile_node(arg, iseq) }
+          block_iseq = compile_block(node.block)
+          iseq.emit(YRuby::Instructions::Send.new(node.name, args.size, block_iseq))
+        else
+          case node.name
+          when :+
+            compile_node(node.receiver, iseq)
+            compile_node(node.arguments.arguments[0], iseq)
+            iseq.emit(YRuby::Instructions::OptPlus.new)
+          when :-
+            compile_node(node.receiver, iseq)
+            compile_node(node.arguments.arguments[0], iseq)
+            iseq.emit(YRuby::Instructions::OptMinus.new)
+          when :*
+            compile_node(node.receiver, iseq)
+            compile_node(node.arguments.arguments[0], iseq)
+            iseq.emit(YRuby::Instructions::OptMult.new)
+          when :/
+            compile_node(node.receiver, iseq)
+            compile_node(node.arguments.arguments[0], iseq)
+            iseq.emit(YRuby::Instructions::OptDiv.new)
+          when :==
+            compile_node(node.receiver, iseq)
+            compile_node(node.arguments.arguments[0], iseq)
+            iseq.emit(YRuby::Instructions::OptEq.new)
+          when :!=
+            compile_node(node.receiver, iseq)
+            compile_node(node.arguments.arguments[0], iseq)
+            iseq.emit(YRuby::Instructions::OptNeq.new)
+          when :<
+            compile_node(node.receiver, iseq)
+            compile_node(node.arguments.arguments[0], iseq)
+            iseq.emit(YRuby::Instructions::OptLt.new)
+          when :>
+            compile_node(node.receiver, iseq)
+            compile_node(node.arguments.arguments[0], iseq)
+            iseq.emit(YRuby::Instructions::OptGt.new)
+          when :<=
+            compile_node(node.receiver, iseq)
+            compile_node(node.arguments.arguments[0], iseq)
+            iseq.emit(YRuby::Instructions::OptLe.new)
+          when :>=
+            compile_node(node.receiver, iseq)
+            compile_node(node.arguments.arguments[0], iseq)
+            iseq.emit(YRuby::Instructions::OptGe.new)
+          else
+            if node.receiver.nil?
+              iseq.emit(YRuby::Instructions::Putself.new)
+              args = node.arguments&.arguments || []
+              args.each { |arg| compile_node(arg, iseq) }
+              iseq.emit(YRuby::Instructions::OptSendWithoutBlock.new(node.name, args.size))
+            else
+              raise "Unknown call: #{node.name}"
+            end
           end
         end
       when Prism::LocalVariableWriteNode
@@ -109,6 +122,27 @@ class YRuby
     end
 
     private
+
+    def compile_block(block_node)
+      block_iseq = YRuby::Iseq.new(type: :block)
+      build_local_table(block_iseq, block_node.locals)
+
+      param_size = 0
+      if block_node.parameters&.parameters
+        param_size = block_node.parameters.parameters.requireds.size
+      end
+
+      block_iseq = YRuby::Iseq.new(
+        type: :block,
+        param_size: param_size,
+        local_table: block_iseq.local_table
+      )
+
+      compile_node(block_node.body, block_iseq) if block_node.body
+      block_iseq.emit(YRuby::Instructions::Leave.new)
+
+      block_iseq
+    end
 
     def build_local_table(iseq, locals)
       locals.each_with_index do |name, index|
