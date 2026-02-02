@@ -153,4 +153,15 @@ class YRubyTest < Minitest::Test
   def test_times_zero
     assert_equal 0, @vm.run('0.times { |i| i }')
   end
+
+  def test_leave_in_toplevel_iseq
+    iseq = @compiler.compile(@parser.parse("42"))
+    assert_instance_of YRuby::Instructions::Leave, iseq.insns.last
+  end
+
+  def test_leave_in_block_iseq
+    iseq = @compiler.compile(@parser.parse('3.times { |i| i }'))
+    send_insn = iseq.insns.find { |i| i.is_a?(YRuby::Instructions::Send) }
+    assert_instance_of YRuby::Instructions::Leave, send_insn.block_iseq.insns.last
+  end
 end

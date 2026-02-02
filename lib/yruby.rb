@@ -113,10 +113,11 @@ class MinRuby
   end
 
   def execute
-    loop do
-      break if pc >= current_iseq.size
-      current_iseq[pc].call(self)
-      self.pc += 1
+    catch(:leave) do
+      loop do
+        current_iseq[pc].call(self)
+        self.pc += 1
+      end
     end
   end
 end

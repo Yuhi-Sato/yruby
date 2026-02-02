@@ -7,6 +7,7 @@ class YRuby
       iseq = YRuby::Iseq.new
 
       compile_node(ast, iseq)
+      iseq.emit(YRuby::Instructions::Leave.new)
 
       iseq
     end
@@ -138,6 +139,7 @@ class YRuby
       )
 
       compile_node(block_node.body, block_iseq) if block_node.body
+      block_iseq.emit(YRuby::Instructions::Leave.new)
 
       block_iseq
     end
