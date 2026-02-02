@@ -1,11 +1,12 @@
 require 'forwardable'
+require_relative 'yruby/rclass'
 
 class MinRuby
   STACK_SIZE = 256.freeze
   ControlFrame = Struct.new(:iseq, :pc, :sp, :ep, :type, keyword_init: true)
 
   attr_accessor :stack, :cfp
-  attr_reader :parser, :compiler, :debug
+  attr_reader :parser, :compiler, :debug, :object_class
 
   def initialize(parser, compiler, debug: false)
     @parser = parser
@@ -13,6 +14,7 @@ class MinRuby
     @debug = debug
     @stack = Array.new(STACK_SIZE)
     @cfp = STACK_SIZE
+    @object_class = YRuby::RClass.new("Object")
   end
 
   def parse(source)
@@ -30,6 +32,14 @@ class MinRuby
     puts iseq.disasm if debug
 
     push_frame(iseq: iseq, type: :top, sp: 0)
+    execute
+    result = stack_pop
+    pop_frame
+    result
+  end
+
+  def invoke_method(method_iseq, args)
+    push_frame(iseq: method_iseq, type: :method, args: args)
     execute
     result = stack_pop
     pop_frame
@@ -84,7 +94,7 @@ class MinRuby
   end
 
   def pop_frame
-    @cfp += 1
+    self.cfp += 1
   end
 
   def execute

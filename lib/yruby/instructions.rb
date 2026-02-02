@@ -1,5 +1,6 @@
 require_relative 'instructions/base'
 require_relative 'instructions/branchunless'
+require_relative 'instructions/definemethod'
 require_relative 'instructions/getlocal'
 require_relative 'instructions/jump'
 require_relative 'instructions/leave'

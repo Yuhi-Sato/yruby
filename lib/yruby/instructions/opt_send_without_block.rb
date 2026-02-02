@@ -16,7 +16,12 @@ class YRuby::Instructions
                  args.each { |arg| Kernel.puts(arg) }
                  nil
                else
-                 raise "Unknown method: #{method_name}"
+                 method_iseq = vm.object_class.lookup_method(method_name)
+                 if method_iseq
+                   vm.invoke_method(method_iseq, args)
+                 else
+                   raise "Unknown method: #{method_name}"
+                 end
                end
 
       vm.stack_push(result)
