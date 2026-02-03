@@ -138,7 +138,11 @@ class YRuby
         local_table: method_iseq.local_table
       )
 
-      compile_node(def_node.body, method_iseq) if def_node.body
+      if def_node.body
+        compile_node(def_node.body, method_iseq)
+      else
+        method_iseq.emit(YRuby::Instructions::Putobject.new(nil))
+      end
       method_iseq.emit(YRuby::Instructions::Leave.new)
       method_iseq
     end

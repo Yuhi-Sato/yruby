@@ -9,16 +9,16 @@ class YRuby::Instructions
 
     def call(vm)
       args = argc.times.map { vm.stack_pop }.reverse
-      _receiver = vm.stack_pop
+      receiver = vm.stack_pop
 
       result = case method_name
                when :puts
                  args.each { |arg| Kernel.puts(arg) }
                  nil
                else
-                 method_iseq = vm.object_class.lookup_method(method_name)
+                 method_iseq = receiver.klass.lookup_method(method_name)
                  if method_iseq
-                   vm.invoke_method(method_iseq, args)
+                   vm.invoke_method(method_iseq: method_iseq, args: args, receiver: receiver)
                  else
                    raise "Unknown method: #{method_name}"
                  end

@@ -8,7 +8,7 @@ class YRuby::Instructions
     end
 
     def call(vm)
-      vm.object_class.define_method(method_name, method_iseq)
+      vm.self_value.klass.define_method(method_name, method_iseq)
       vm.stack_push(method_name)
     end
 

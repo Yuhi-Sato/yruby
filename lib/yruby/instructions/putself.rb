@@ -1,7 +1,7 @@
 class YRuby::Instructions
   class Putself < Base
     def call(vm)
-      vm.stack_push(:main)
+      vm.stack_push(vm.self_value)
     end
   end
 end

@@ -15,7 +15,7 @@ class YRuby::Instructions
       case method_name
       when :times
         receiver.times do |i|
-          vm.invoke_block(block_iseq, [i])
+          vm.invoke_block(block_iseq: block_iseq, args: [i])
         end
         vm.stack_push(receiver)
       else

@@ -1,12 +1,13 @@
 require 'forwardable'
+require_relative 'yruby/rbasic'
 require_relative 'yruby/rclass'
 
 class MinRuby
   STACK_SIZE = 256.freeze
-  ControlFrame = Struct.new(:iseq, :pc, :sp, :ep, :type, keyword_init: true)
+  ControlFrame = Struct.new(:iseq, :pc, :sp, :ep, :type, :self_value, keyword_init: true)
 
   attr_accessor :stack, :cfp
-  attr_reader :parser, :compiler, :debug, :object_class
+  attr_reader :parser, :compiler, :debug, :main
 
   def initialize(parser, compiler, debug: false)
     @parser = parser
@@ -14,7 +15,7 @@ class MinRuby
     @debug = debug
     @stack = Array.new(STACK_SIZE)
     @cfp = STACK_SIZE
-    @object_class = YRuby::RClass.new("Object")
+    @main = YRuby::RBasic.new(YRuby::RClass.new("Object"))
   end
 
   def parse(source)
@@ -31,23 +32,23 @@ class MinRuby
 
     puts iseq.disasm if debug
 
-    push_frame(iseq: iseq, type: :top, sp: 0)
+    push_frame(iseq: iseq, type: :top, sp: 0, self_value: @main)
     execute
     result = stack_pop
     pop_frame
     result
   end
 
-  def invoke_method(method_iseq, args)
-    push_frame(iseq: method_iseq, type: :method, args: args)
+  def invoke_method(method_iseq:, args:, receiver: main)
+    push_frame(iseq: method_iseq, type: :method, args: args, self_value: receiver)
     execute
     result = stack_pop
     pop_frame
     result
   end
 
-  def invoke_block(block_iseq, args)
-    push_frame(iseq: block_iseq, type: :block, args: args)
+  def invoke_block(block_iseq:, args:)
+    push_frame(iseq: block_iseq, type: :block, args: args, self_value: current_cf.self_value)
     execute
     result = stack_pop
     pop_frame
@@ -69,11 +70,11 @@ class MinRuby
   end
 
   extend Forwardable
-  def_delegators :current_cf, :pc, :pc=, :sp, :sp=, :ep, :ep=, :iseq
+  def_delegators :current_cf, :pc, :pc=, :sp, :sp=, :ep, :ep=, :iseq, :self_value
 
   private
 
-  def push_frame(iseq:, type:, sp: nil, args: [])
+  def push_frame(iseq:, type:, sp: nil, args: [], self_value: nil)
     frame_sp = sp || self.sp
     frame_ep = frame_sp + iseq.local_size - 1
     new_sp = frame_sp + iseq.local_size
@@ -87,7 +88,8 @@ class MinRuby
       pc: 0,
       sp: new_sp,
       ep: frame_ep,
-      type: type
+      type: type,
+      self_value: self_value
     )
     self.cfp -= 1
     self.stack[cfp] = cf
