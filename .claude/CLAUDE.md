@@ -44,3 +44,6 @@ Requires Ruby 4.0.0 (see `.ruby-version`).
 ## Testing
 
 Tests use Minitest in `test/yruby_test.rb`. The test helper `assert_yruby(expected, source)` compiles and runs a Ruby source string, then asserts the VM result matches the expected value.
+
+## Plan Mode
+プランモードの際はプランのmdファイルを.claude/plans/に保存してください。

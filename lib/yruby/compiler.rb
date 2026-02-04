@@ -114,6 +114,9 @@ class YRuby
           iseq.emit(YRuby::Instructions::Putobject.new(nil))
         end
         iseq.set_slot(jump_idx, YRuby::Instructions::Jump.new(iseq.size))
+      when Prism::DefNode
+        method_iseq = compile_method(node)
+        iseq.emit(YRuby::Instructions::Definemethod.new(node.name, method_iseq))
       when Prism::ElseNode
         compile_node(node.statements, iseq)
       else
@@ -122,6 +125,27 @@ class YRuby
     end
 
     private
+
+    def compile_method(def_node)
+      method_iseq = YRuby::Iseq.new(type: :method)
+      build_local_table(method_iseq, def_node.locals)
+
+      param_size = def_node.parameters&.requireds&.size || 0
+
+      method_iseq = YRuby::Iseq.new(
+        type: :method,
+        param_size: param_size,
+        local_table: method_iseq.local_table
+      )
+
+      if def_node.body
+        compile_node(def_node.body, method_iseq)
+      else
+        method_iseq.emit(YRuby::Instructions::Putobject.new(nil))
+      end
+      method_iseq.emit(YRuby::Instructions::Leave.new)
+      method_iseq
+    end
 
     def compile_block(block_node)
       block_iseq = YRuby::Iseq.new(type: :block)

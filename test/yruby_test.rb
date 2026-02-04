@@ -164,4 +164,39 @@ class YRubyTest < Minitest::Test
     send_insn = iseq.insns.find { |i| i.is_a?(YRuby::Instructions::Send) }
     assert_instance_of YRuby::Instructions::Leave, send_insn.block_iseq.insns.last
   end
+
+  def test_method_definition
+    assert_equal :foo, @vm.run("def foo; 42; end")
+  end
+
+  def test_method_call
+    assert_equal 42, @vm.run("def foo; 42; end; foo")
+  end
+
+  def test_method_with_args
+    assert_equal 3, @vm.run("def add(a, b); a + b; end; add(1, 2)")
+  end
+
+  def test_method_without_body
+    assert_nil @vm.run("def foo; end; foo")
+  end
+
+  def test_method_calling_method
+    code = "def double(x); x * 2; end; def quad(x); double(double(x)); end; quad(5)"
+    assert_equal 20, @vm.run(code)
+  end
+
+  def test_leave_in_method_iseq
+    iseq = @compiler.compile(@parser.parse("def foo; 42; end"))
+    define_insn = iseq.insns.find { |i| i.is_a?(YRuby::Instructions::Definemethod) }
+    assert_instance_of YRuby::Instructions::Leave, define_insn.method_iseq.insns.last
+  end
+
+  def test_main_is_rbasic
+    assert_instance_of YRuby::RBasic, @vm.main
+  end
+
+  def test_main_klass_is_object
+    assert_equal "Object", @vm.main.klass.name
+  end
 end
