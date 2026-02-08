@@ -4,6 +4,7 @@ require_relative 'iseq'
 require_relative 'compile'
 require_relative 'insns'
 require_relative 'parser'
+require_relative 'insnhelper'
 
 class YRuby
   STACK_SIZE = 128.freeze

@@ -1,11 +1,9 @@
 # frozen_string_literal: true
 
-require 'forwardable'
-
 require_relative 'yruby/core'
 
 class YRuby
-  extend Forwardable
+  include InsnHelper
 
   def initialize(parser)
     @parser = parser
@@ -21,31 +19,6 @@ class YRuby
     exec_core(iseq)
   end
 
-  def push(x)
-    set_sv(x)
-    inc_sp(1)
-  end
-
-  def topn(x)
-    stack[sp - x]
-  end
-
-  def pop
-    stack[sp] = nil
-    self.sp = sp - 1
-  end
-
-  def push_frame
-    cf = ControlFrame.new(iseq: nil, pc: 0, sp: 0, ep: 0, type: nil, self_value: nil)
-    self.cfp = cfp - 1
-    stack[cfp] = cf
-  end
-
-  def pop_frame
-    stack[cfp] = nil
-    self.cfp = cfp + 1
-  end
-
   private
 
   def init
@@ -54,29 +27,13 @@ class YRuby
     push_frame
   end
 
-  def_delegators :@ec, :cfp, :cfp=, :stack, :stack=
-
-  def current_cf
-    stack[cfp]
-  end
-
-  def_delegators :current_cf, :iseq, :iseq=, :pc, :pc=, :sp, :sp=
-
-  def set_sv(x)
-    stack[sp] = x
-  end
-
-  def inc_sp(x)
-    self.sp += x
-  end
-
   def exec_core(iseq)
     self.iseq = iseq
 
     catch(:finish) do
       loop do
         insn = iseq.fetch(pc)
-        self.pc += 1
+        add_pc(1)
         insn.call(self)
       end
     end
