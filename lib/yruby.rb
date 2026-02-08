@@ -26,6 +26,15 @@ class YRuby
     inc_sp(1)
   end
 
+  def topn(x)
+    stack[sp - x]
+  end
+
+  def pop
+    stack[sp] = nil
+    self.sp = sp - 1
+  end
+
   def push_frame
     cf = ControlFrame.new(iseq: nil, pc: 0, sp: 0, ep: 0, type: nil, self_value: nil)
     self.cfp = cfp - 1
