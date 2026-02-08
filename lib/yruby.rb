@@ -22,5 +22,8 @@ class YRuby
 
   def init
     stack = Array.new(STACK_SIZE)
+    @ec = ExecutionContext.new(stack:, stack_size: STACK_SIZE, cfp: STACK_SIZE)
+    push_frame(@ec)
+  end
   end
 end
