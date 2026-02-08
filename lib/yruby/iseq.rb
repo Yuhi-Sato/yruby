@@ -4,9 +4,22 @@ class YRuby
   class Iseq
     class << self
       def iseq_new_main(ast)
-        # TODO: Build Iseq
-        # TODO: Compile AST to Iseq
+        node = ast.value
+
+        iseq = new
+
+        Compile.iseq_compile_node(iseq, node)
+
+        iseq
       end
+    end
+
+    def initialize
+      @iseq_encoded = []
+    end
+
+    def emit(insn)
+      @iseq_encoded << insn
     end
   end
 end
