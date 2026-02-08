@@ -18,9 +18,7 @@ class YRuby
 
     iseq = Iseq.iseq_new_main(ast)
 
-    # TODO: Execute Iseq
-
-    # TODO: Return the result of the execution
+    exec_core(iseq)
   end
 
   def push(x)
@@ -61,5 +59,17 @@ class YRuby
 
   def inc_sp(x)
     self.sp += x
+  end
+
+  def exec_core(iseq)
+    self.iseq = iseq
+
+    catch(:finish) do
+      loop do
+        insn = iseq.fetch(pc)
+        self.pc += 1
+        insn.call(self)
+      end
+    end
   end
 end

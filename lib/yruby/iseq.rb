@@ -21,5 +21,9 @@ class YRuby
     def emit(insn)
       @iseq_encoded << insn
     end
+
+    def fetch(pc)
+      @iseq_encoded[pc]
+    end
   end
 end
