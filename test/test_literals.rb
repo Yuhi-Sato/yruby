@@ -20,4 +20,12 @@ class TestLiterals < YRubyTestCase
   def test_statements
     assert_equal 42, exec("42; 42; 42")
   end
+
+  def test_nil
+    assert_nil exec("nil")
+  end
+
+  def test_nil_statements
+    assert_nil exec("nil; 42; nil")
+  end
 end

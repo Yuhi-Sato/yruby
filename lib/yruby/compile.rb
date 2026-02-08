@@ -15,6 +15,8 @@ class YRuby
           node.body.each { |stmt| compile_node(iseq, stmt) }
         when Prism::IntegerNode
           iseq.emit(YRuby::Insns::Putobject.new(node.value))
+        when Prism::NilNode
+          iseq.emit(YRuby::Insns::Putnil.new)
         end
       end
     end
