@@ -48,13 +48,13 @@ class YRuby
     stack[cfp]
   end
 
-  def_delegators :current_cf, :sp
+  def_delegators :current_cf, :sp, :sp=
 
   def set_sv(x)
     stack[sp] = x
   end
 
   def inc_sp(x)
-    sp += x
+    self.sp += x
   end
 end
