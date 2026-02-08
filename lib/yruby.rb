@@ -1,8 +1,12 @@
 # frozen_string_literal: true
 
+require 'forwardable'
+
 require_relative 'core'
 
 class YRuby
+  extend Forwardable
+
   def initialize(parser)
     @parser = parser
   end
@@ -19,6 +23,11 @@ class YRuby
     # TODO: Return the result of the execution
   end
 
+  def push(x)
+    set_sv(x)
+    inc_sp(1)
+  end
+
   private
 
   def init
@@ -31,5 +40,21 @@ class YRuby
     cf = ControlFrame.new(iseq: nil, pc: 0, sp: 0, ep: 0, type: nil, self_value: nil)
     ec.cfp = ec.cfp - 1
     ec.stack[ec.cfp] = cf
+  end
+
+  def_delegators :@ec, :cfp, :stack
+
+  def current_cf
+    stack[cfp]
+  end
+
+  def_delegators :current_cf, :sp
+
+  def set_sv(x)
+    stack[sp] = x
+  end
+
+  def inc_sp(x)
+    sp += x
   end
 end
