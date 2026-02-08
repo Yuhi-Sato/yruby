@@ -8,6 +8,14 @@ class YRuby
       end
 
       def compile_node(iseq, node)
+        case node
+        when Prism::ProgramNode
+          compile_node(iseq, node.statements)
+        when Prism::StatementsNode
+          node.body.each { |stmt| compile_node(iseq, stmt) }
+        when Prism::IntegerNode
+          iseq.emit(YRuby::Insns::Putobject.new(node.value))
+        end
       end
     end
   end
