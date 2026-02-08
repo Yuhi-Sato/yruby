@@ -2,7 +2,7 @@
 
 require 'forwardable'
 
-require_relative 'core'
+require_relative 'yruby/core'
 
 class YRuby
   extend Forwardable
