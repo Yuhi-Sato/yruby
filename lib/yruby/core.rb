@@ -1,5 +1,10 @@
 # frozen_string_literal: true
 
+require_relative 'iseq'
+require_relative 'compile'
+require_relative 'insns'
+require_relative 'parser'
+
 class YRuby
   STACK_SIZE = 128.freeze
 
