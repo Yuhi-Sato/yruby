@@ -17,6 +17,10 @@ class YRuby
           iseq.emit(YRuby::Insns::Putobject.new(node.value))
         when Prism::NilNode
           iseq.emit(YRuby::Insns::Putnil.new)
+        when Prism::TrueNode
+          iseq.emit(YRuby::Insns::Putobject.new(true))
+        when Prism::FalseNode
+          iseq.emit(YRuby::Insns::Putobject.new(false))
         end
       end
     end
