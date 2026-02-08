@@ -9,6 +9,7 @@ class YRuby
         iseq = new
 
         Compile.iseq_compile_node(iseq, node)
+        iseq.emit(Insns::Leave.new)
 
         iseq
       end
