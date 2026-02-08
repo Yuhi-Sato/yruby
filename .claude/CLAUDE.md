@@ -20,8 +20,8 @@ lib/
 ├── yruby.rb                    #   vm.c, vm_exec.c (VM本体、実行ループ)
 └── yruby/
     ├── core.rb                 #   vm_core.h (データ構造定義、依存関係の起点)
-    │   └── ExecutionContext    #    └─ rb_execution_context_struct
-    │   ├── ControlFrame        #    └─ rb_control_frame_struct
+    │   ├── ExecutionContext    #    └─ rb_execution_context_struct
+    │   └── ControlFrame        #    └─ rb_control_frame_struct
     ├── parser.rb               #   parse.y (Prismラッパー)
     ├── compile.rb              #   compile.c (ASTからバイトコードへ)
     ├── iseq.rb                 #   iseq.c, iseq.h (命令シーケンス)
