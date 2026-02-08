@@ -1,7 +1,3 @@
-# CLAUDE.md
-
-このファイルはClaude Code (claude.ai/code) がこのリポジトリで作業する際のガイダンスを提供します。
-
 ## プロジェクト概要
 
 YRubyはCRubyのYARV (Yet Another Ruby VM) アーキテクチャに基づくRuby仮想マシン実装です。Prism gemでパースし、スタックベースのバイトコードインタプリタを実装しています。
