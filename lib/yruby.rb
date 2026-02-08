@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'core'
+
 class YRuby
   def initialize(parser)
     @parser = parser
@@ -18,7 +20,7 @@ class YRuby
 
   private
 
-  # TODO: Setup VM
   def init
+    stack = Array.new(STACK_SIZE)
   end
 end
