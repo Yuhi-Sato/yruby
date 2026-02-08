@@ -12,7 +12,8 @@ class YRuby
 
     ast = @parser.parse(source)
 
-    # TODO: Compile AST to Iseq
+    iseq = Iseq.iseq_new_main(@ec, ast)
+
     # TODO: Execute Iseq
 
     # TODO: Return the result of the execution
