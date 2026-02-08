@@ -1,6 +1,14 @@
 # frozen_string_literal: true
 
+require_relative 'iseq'
+require_relative 'compile'
+require_relative 'insns'
+require_relative 'parser'
+require_relative 'insnhelper'
+
 class YRuby
-  ExecutionContext = Struct.new(keyword_init: true)
-  ControlFrame = Struct.new(keyword_init: true)
+  STACK_SIZE = 128.freeze
+
+  ControlFrame = Struct.new(:iseq, :pc, :sp, :ep, :type, :self_value, keyword_init: true)
+  ExecutionContext = Struct.new(:stack, :stack_size, :cfp, keyword_init: true)
 end

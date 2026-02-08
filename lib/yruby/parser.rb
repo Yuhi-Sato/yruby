@@ -6,7 +6,8 @@ class YRuby
   class Parser
     def parse(source)
       result = Prism.parse(source)
-      result.value
+
+      result
     end
   end
 end
