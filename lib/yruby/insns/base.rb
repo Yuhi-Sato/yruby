@@ -2,9 +2,9 @@
 
 class YRuby
   module Insns
-    class Putnil < Base
+    class Base
       def call(vm)
-        vm.push(nil)
+        raise NotImplementedError
       end
     end
   end

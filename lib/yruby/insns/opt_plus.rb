@@ -2,7 +2,7 @@
 
 class YRuby
   module Insns
-    class OptPlus
+    class OptPlus < Base
       def call(vm)
         recv = vm.topn(2)
         arg = vm.topn(1)

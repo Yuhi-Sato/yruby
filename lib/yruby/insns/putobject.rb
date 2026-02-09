@@ -2,7 +2,7 @@
 
 class YRuby
   module Insns
-    class Putobject
+    class Putobject < Base
       def initialize(value)
         @value = value
       end
