@@ -6,6 +6,10 @@ class YRuby
   module InsnHelper
     extend Forwardable
 
+    def_delegators :@ec, :cfp, :cfp=, :stack, :stack=, :frames
+    def_delegators :cfp, :iseq, :iseq=, :pc, :pc=, :sp, :sp=
+
+    # Value Stack
     def push(x)
       set_sv(x)
       inc_sp(1)
@@ -16,28 +20,23 @@ class YRuby
     end
 
     def pop
-      stack[sp] = nil
       self.sp = sp - 1
+      val = stack[sp]
+      stack[sp] = nil
+      val
     end
 
+    # Control Frame
     def push_frame
       cf = ControlFrame.new(iseq: nil, pc: 0, sp: 0, ep: 0, type: nil, self_value: nil)
-      self.cfp = cfp - 1
-      stack[cfp] = cf
+      frames.push(cf)
+      self.cfp = cf
     end
 
     def pop_frame
-      stack[cfp] = nil
-      self.cfp = cfp + 1
+      frames.pop
+      self.cfp = frames.last
     end
-
-    def_delegators :@ec, :cfp, :cfp=, :stack, :stack=
-
-    def current_cf
-      stack[cfp]
-    end
-
-    def_delegators :current_cf, :iseq, :iseq=, :pc, :pc=, :sp, :sp=
 
     # PC
     def add_pc(x)
