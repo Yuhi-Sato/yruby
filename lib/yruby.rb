@@ -5,6 +5,8 @@ require_relative 'yruby/core'
 class YRuby
   include InsnHelper
 
+  attr_reader :ec
+
   def initialize(parser)
     @parser = parser
   end
@@ -24,16 +26,16 @@ class YRuby
   def init
     stack = Array.new(STACK_SIZE)
     frames = []
-    @ec = ExecutionContext.new(stack:, stack_size: STACK_SIZE, cfp: nil, frames:)
+    @ec = ExecutionContext.new(stack:, stack_size: STACK_SIZE, frames:)
     push_frame
   end
 
   def exec_core(iseq)
-    self.iseq = iseq
+    cfp.iseq = iseq
 
     catch(:finish) do
       loop do
-        insn = iseq.fetch(pc)
+        insn = cfp.iseq.fetch(cfp.pc)
         add_pc(1)
         insn.call(self)
       end
