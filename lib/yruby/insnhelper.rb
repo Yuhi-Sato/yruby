@@ -6,8 +6,7 @@ class YRuby
   module InsnHelper
     extend Forwardable
 
-    def_delegators :@ec, :cfp, :cfp=, :stack, :stack=, :frames
-    def_delegators :cfp, :iseq, :iseq=, :pc, :pc=, :sp, :sp=
+    def_delegators :ec, :cfp, :cfp=, :stack, :stack=, :frames
 
     # Value Stack
     def push(x)
@@ -16,13 +15,13 @@ class YRuby
     end
 
     def topn(x)
-      stack[sp - x]
+      stack[cfp.sp - x]
     end
 
     def pop
-      self.sp = sp - 1
-      val = stack[sp]
-      stack[sp] = nil
+      cfp.sp -= 1
+      val = stack[cfp.sp]
+      stack[cfp.sp] = nil
       val
     end
 
@@ -40,16 +39,16 @@ class YRuby
 
     # PC
     def add_pc(x)
-      self.pc += x
+      cfp.pc += x
     end
 
     # SP
     def set_sv(x)
-      stack[sp] = x
+      stack[cfp.sp] = x
     end
 
     def inc_sp(x)
-      self.sp += x
+      cfp.sp += x
     end
   end
 end

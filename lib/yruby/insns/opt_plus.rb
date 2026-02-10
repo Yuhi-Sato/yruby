@@ -2,12 +2,13 @@
 
 class YRuby
   module Insns
-    class Leave < Base
+    class OptPlus < Base
       def call(vm)
-        val = vm.topn(1)
+        recv = vm.topn(2)
+        arg = vm.topn(1)
         vm.pop
-        vm.pop_frame
-        throw :finish, val
+        vm.pop
+        vm.push(recv + arg)
       end
     end
   end
