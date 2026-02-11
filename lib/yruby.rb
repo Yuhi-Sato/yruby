@@ -4,6 +4,7 @@ require_relative 'yruby/core'
 
 class YRuby
   include InsnHelper
+  include InsnHelper::Macros
 
   attr_reader :ec
 
