@@ -28,11 +28,10 @@ class YRuby
     stack = Array.new(STACK_SIZE)
     frames = []
     @ec = ExecutionContext.new(stack:, stack_size: STACK_SIZE, frames:)
-    push_frame
   end
 
   def exec_core(iseq)
-    cfp.iseq = iseq
+    push_frame(iseq:)
 
     catch(:finish) do
       loop do
