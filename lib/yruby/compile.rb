@@ -4,10 +4,16 @@ class YRuby
   class Compile
     class << self
       def iseq_compile_node(iseq, node)
+        iseq_set_local_table(iseq, node)
         compile_node(iseq, node)
       end
 
       private
+
+      def iseq_set_local_table(iseq, node)
+        iseq.local_table_size = node.locals.size
+        iseq.local_table = node.locals.dup
+      end
 
       def compile_node(iseq, node)
         case node
