@@ -42,6 +42,11 @@ class YRuby
       cfp.pc += x
     end
 
+    # environment pointer
+    def get_ep
+      cfp.ep
+    end
+
     # SP
     def set_sv(x)
       stack[cfp.sp] = x
