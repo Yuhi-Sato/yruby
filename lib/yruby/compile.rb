@@ -2,13 +2,27 @@
 
 class YRuby
   class Compile
-    class << self
-      def iseq_compile_node(iseq, node)
-        iseq_set_local_table(iseq, node)
-        compile_node(iseq, node)
+    def iseq_compile_node(iseq, node)
+      @index_lookup_table = {}
+      insert_local_index(@index_lookup_table, node.locals)
+      iseq_set_local_table(iseq, node.locals)
+      compile_node(iseq, node)
+    end
+
+    private
+
+    def insert_local_index(index_lookup_table, locals)
+      locals.reverse_each.with_index do |local, index|
+        index_lookup_table[local] = index
       end
 
       private
+
+      def insert_local_index(index_lookup_table, locals)
+        locals.each_with_index do |local, index|
+          index_lookup_table[local.name] = index
+        end
+      end
 
       def iseq_set_local_table(iseq, node)
         iseq.local_table_size = node.locals.size
