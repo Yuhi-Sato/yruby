@@ -45,6 +45,9 @@ class YRuby
         iseq.emit(YRuby::Insns::Dup.new)
         idx = @index_lookup_table[node.name]
         iseq.emit(YRuby::Insns::Setlocal.new(idx))
+      when Prism::LocalVariableReadNode
+        idx = @index_lookup_table[node.name]
+        iseq.emit(YRuby::Insns::Getlocal.new(idx))
       else
         raise "Unknown node: #{node.class}"
       end

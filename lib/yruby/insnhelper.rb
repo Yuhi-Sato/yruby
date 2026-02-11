@@ -61,6 +61,10 @@ class YRuby
       self.cfp = frames.last
     end
 
+    def env_read(index)
+      stack[get_ep + index]
+    end
+
     def env_write(index, value)
       stack[get_ep + index] = value
     end
