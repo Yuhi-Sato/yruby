@@ -57,5 +57,9 @@ class YRuby
       frames.pop
       self.cfp = frames.last
     end
+
+    def env_write(index, value)
+      stack[get_ep + index] = value
+    end
   end
 end
