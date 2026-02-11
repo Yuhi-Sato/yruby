@@ -15,8 +15,12 @@ class YRuby
       end
     end
 
+    attr_reader :local_table, :local_table_size
+
     def initialize
       @iseq_encoded = []
+      @local_table = []
+      @local_table_size = 0
     end
 
     def emit(insn)
