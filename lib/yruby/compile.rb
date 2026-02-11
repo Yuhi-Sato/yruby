@@ -40,6 +40,11 @@ class YRuby
         compile_call_node(iseq, node)
       when Prism::ArgumentsNode
         node.arguments.each { |arg| compile_node(iseq, arg) }
+      when Prism::LocalVariableWriteNode
+        compile_node(iseq, node.value)
+        iseq.emit(YRuby::Insns::Dup.new)
+        idx = @index_lookup_table[node.name]
+        iseq.emit(YRuby::Insns::Setlocal.new(idx))
       else
         raise "Unknown node: #{node.class}"
       end
