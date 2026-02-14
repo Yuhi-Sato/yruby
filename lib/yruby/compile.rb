@@ -48,6 +48,8 @@ class YRuby
       when Prism::LocalVariableReadNode
         idx = @index_lookup_table[node.name]
         iseq.emit(YRuby::Insns::Getlocal.new(idx))
+      when Prism::IfNode
+        compile_conditional_node(iseq, node)
       else
         raise "Unknown node: #{node.class}"
       end
@@ -63,6 +65,32 @@ class YRuby
       else
         raise "Unknown operator: #{node.name}"
       end
+    end
+
+    def compile_conditional_node(iseq, node)
+      compile_node(iseq, node.predicate)
+      branchunless_pc = iseq.size
+      iseq.emit(nil) # branchunless to else_label
+
+      # then statements
+      compile_node(iseq, node.statements)
+
+      then_end_pc = iseq.size
+      iseq.emit(nil) # jump to end_label
+
+      else_label = iseq.size
+      iseq.set_insn_at!(branchunless_pc, YRuby::Insns::Branchunless.new(else_label))
+
+      # elsif / else statements
+      case node.subsequent
+      when Prism::IfNode
+        compile_conditional_node(iseq, node.subsequent)
+      when Prism::ElseNode
+        compile_node(iseq, node.subsequent.statements)
+      end
+
+      end_label = iseq.size
+      iseq.set_insn_at!(then_end_pc, YRuby::Insns::Jump.new(end_label))
     end
   end
 end

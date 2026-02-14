@@ -31,6 +31,14 @@ class YRuby
       @iseq_encoded[pc]
     end
 
+    def size
+      @iseq_encoded.size
+    end
+
+    def set_insn_at!(pc, insn)
+      @iseq_encoded[pc] = insn
+    end
+
     def disasm
       lines = []
       lines << "== disasm: #<ISeq:<main>@<compiled>:1> =="

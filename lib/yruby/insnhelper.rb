@@ -31,6 +31,10 @@ class YRuby
         cfp.pc += x
       end
 
+      def set_pc(x)
+        cfp.pc = x
+      end
+
       # environment pointer
       def get_ep
         cfp.ep
