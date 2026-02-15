@@ -60,6 +60,8 @@ class YRuby
       case node.name
       when :+; iseq.emit(YRuby::Insns::OptPlus.new)
       when :-; iseq.emit(YRuby::Insns::OptMinus.new)
+      when :*; iseq.emit(YRuby::Insns::OptMult.new)
+      when :/; iseq.emit(YRuby::Insns::OptDiv.new)
       else
         raise "Unknown operator: #{node.name}"
       end
