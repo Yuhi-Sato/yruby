@@ -53,7 +53,7 @@ class YRuby
     # Control Frame
     def push_frame(iseq:)
       sp = iseq.local_table.size
-      ep = sp
+      ep = sp - 1
 
       cf = ControlFrame.new(iseq:, pc: 0, sp:, ep:, type: nil, self_value: nil)
       frames.push(cf)
