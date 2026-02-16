@@ -65,12 +65,19 @@ class YRuby
       self.cfp = frames.last
     end
 
+    # Environment Pointer
     def env_read(index)
       stack[get_ep + index]
     end
 
     def env_write(index, value)
       stack[get_ep + index] = value
+    end
+
+    def define_method(mid, iseq)
+      klass = cfp.self_value.klass
+
+      klass.add_method_iseq(mid, iseq)
     end
   end
 end
