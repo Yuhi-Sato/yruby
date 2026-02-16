@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require_relative 'yruby/core'
+require_relative 'yruby/rclass'
+require_relative 'yruby/robject'
 
 class YRuby
   include InsnHelper
@@ -28,10 +30,11 @@ class YRuby
     stack = Array.new(STACK_SIZE)
     frames = []
     @ec = ExecutionContext.new(stack:, stack_size: STACK_SIZE, frames:)
+    @top_self = RObject.new(RClass.new)
   end
 
   def exec_core(iseq)
-    push_frame(iseq:)
+    push_frame(iseq:, type: FRAME_TYPE_TOP, self_value: @top_self)
 
     catch(:finish) do
       loop do
