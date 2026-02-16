@@ -50,6 +50,8 @@ class YRuby
         iseq.emit(YRuby::Insns::Getlocal.new(idx))
       when Prism::IfNode
         compile_conditional_node(iseq, node)
+      when Prism::DefNode
+        compile_def_node(iseq, node)
       else
         raise "Unknown node: #{node.class}"
       end
@@ -67,6 +69,12 @@ class YRuby
       else
         raise "Unknown operator: #{node.name}"
       end
+    end
+
+    def compile_def_node(iseq, node)
+      method_iseq = YRuby::Iseq.iseq_new_method(node)
+      iseq.emit(YRuby::Insns::Definemethod.new(node.name, method_iseq))
+      iseq.emit(YRuby::Insns::Putobject.new(node.name))
     end
 
     def compile_conditional_node(iseq, node)
