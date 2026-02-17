@@ -51,9 +51,8 @@ class YRuby
     end
 
     # Control Frame
-    def push_frame(iseq:, type: FRAME_TYPE_TOP, self_value: nil)
-      base_sp = cfp ? cfp.sp : 0
-      sp = base_sp + iseq.local_table_size
+    def push_frame(iseq:, type: FRAME_TYPE_TOP, self_value: nil, sp:)
+      sp = sp + iseq.local_table_size
       ep = sp - 1
 
       cf = ControlFrame.new(iseq:, pc: 0, sp:, ep:, type:, self_value:)
