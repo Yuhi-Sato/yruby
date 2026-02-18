@@ -9,6 +9,18 @@ class YRuby
       compile_node(iseq, node)
     end
 
+    def iseq_compile_method(iseq, def_node)
+      @index_lookup_table = {}
+      insert_local_index(@index_lookup_table, def_node.locals)
+      iseq_set_local_table(iseq, def_node.locals)
+
+      if def_node.body
+        compile_node(iseq, def_node.body)
+      else
+        iseq.emit(YRuby::Insns::Putnil.new)
+      end
+    end
+
     private
 
     def insert_local_index(index_lookup_table, locals)
@@ -58,16 +70,25 @@ class YRuby
     end
 
     def compile_call_node(iseq, node)
-      compile_node(iseq, node.receiver)
-      compile_node(iseq, node.arguments)
-
-      case node.name
-      when :+; iseq.emit(YRuby::Insns::OptPlus.new)
-      when :-; iseq.emit(YRuby::Insns::OptMinus.new)
-      when :*; iseq.emit(YRuby::Insns::OptMult.new)
-      when :/; iseq.emit(YRuby::Insns::OptDiv.new)
+      if node.receiver.nil?
+        iseq.emit(YRuby::Insns::Putself.new)
+        argc = 0
+        if node.arguments
+          compile_node(iseq, node.arguments)
+          argc = node.arguments.arguments.size
+        end
+        cd = CallData.new(ci: CallInfo.new(mid: node.name, argc:))
+        iseq.emit(YRuby::Insns::OptSendWithoutBlock.new(cd))
       else
-        raise "Unknown operator: #{node.name}"
+        compile_node(iseq, node.receiver)
+        compile_node(iseq, node.arguments)
+
+        case node.name
+        when :+; iseq.emit(YRuby::Insns::OptPlus.new)
+        when :-; iseq.emit(YRuby::Insns::OptMinus.new)
+        else
+          raise "Unknown operator: #{node.name}"
+        end
       end
     end
 
