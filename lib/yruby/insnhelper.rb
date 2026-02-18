@@ -31,6 +31,10 @@ class YRuby
         cfp.pc += x
       end
 
+      def set_pc(x)
+        cfp.pc = x
+      end
+
       # environment pointer
       def get_ep
         cfp.ep
@@ -47,11 +51,11 @@ class YRuby
     end
 
     # Control Frame
-    def push_frame(iseq:)
-      sp = iseq.local_table.size
+    def push_frame(iseq:, type: FRAME_TYPE_TOP, self_value: nil, sp:)
+      sp = sp + iseq.local_table_size
       ep = sp - 1
 
-      cf = ControlFrame.new(iseq:, pc: 0, sp:, ep:, type: nil, self_value: nil)
+      cf = ControlFrame.new(iseq:, pc: 0, sp:, ep:, type:, self_value:)
       frames.push(cf)
       self.cfp = cf
     end
@@ -61,12 +65,66 @@ class YRuby
       self.cfp = frames.last
     end
 
+    # Environment Pointer
     def env_read(index)
       stack[get_ep + index]
     end
 
     def env_write(index, value)
       stack[get_ep + index] = value
+    end
+
+    def define_method(mid, iseq)
+      klass = cfp.self_value.klass
+
+      klass.add_method_iseq(mid, iseq)
+    end
+
+    def call_iseq_setup(recv, argc, method_iseq)
+      argv_index = cfp.sp - argc
+      recv_index = argv_index - 1
+
+      args = argc.times.map do |i|
+        stack[argv_index + i]
+      end
+
+      actual_recv = stack[recv_index]
+      raise "call_iseq_setup: recv mismatch" if actual_recv != recv
+
+      cfp.sp = recv_index
+
+      param_size = method_iseq.argc
+
+      sp_for_callee = argv_index + param_size
+
+      push_frame(
+        iseq: method_iseq,
+        type: FRAME_TYPE_METHOD,
+        self_value: recv,
+        sp: sp_for_callee
+      )
+
+      args.each_with_index do |a, i|
+        break if i >= param_size
+
+        param_index = param_size - 1 - i
+        slot = param_index == 0 ? 0 : -param_index
+        env_write(slot, a)
+      end
+    end
+
+    def sendish(cd)
+      ci = cd.ci
+
+      argc = ci.argc
+      recv = topn(argc + 1)
+
+      klass = recv.klass
+      method_iseq = klass.search_method(ci.mid)
+
+      raise "undefined method #{ci.mid}" if method_iseq.nil?
+
+      call_iseq_setup(recv, argc, method_iseq)
     end
   end
 end
