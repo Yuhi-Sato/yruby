@@ -84,33 +84,14 @@ class YRuby
       argv_index = cfp.sp - argc
       recv_index = argv_index - 1
 
-      args = argc.times.map do |i|
-        stack[argv_index + i]
-      end
-
-      actual_recv = stack[recv_index]
-      raise "call_iseq_setup: recv mismatch" if actual_recv != recv
-
       cfp.sp = recv_index
-
-      param_size = method_iseq.argc
-
-      sp_for_callee = argv_index + param_size
 
       push_frame(
         iseq: method_iseq,
         type: FRAME_TYPE_METHOD,
         self_value: recv,
-        sp: sp_for_callee
+        sp: argv_index
       )
-
-      args.each_with_index do |a, i|
-        break if i >= param_size
-
-        param_index = param_size - 1 - i
-        slot = param_index == 0 ? 0 : -param_index
-        env_write(slot, a)
-      end
     end
 
     def sendish(cd)
