@@ -19,7 +19,7 @@ $ gem install yruby
 ## Requirements
 
 - Ruby >= 3.3.0
-- [prism](https://rubygems.org/gems/prism) ~> 0.19
+- [prism](https://rubygems.org/gems/prism) ~> 1.0
 
 ## Usage
 
@@ -28,7 +28,7 @@ $ gem install yruby
 ```ruby
 require 'yruby'
 
-vm = YRuby.new(YRuby::Parser.new)
+vm = YRuby.new
 
 vm.exec("1 + 2")           # => 3
 vm.exec("if true; 42; end") # => 42
@@ -38,13 +38,13 @@ Each call to `exec` is independent — the VM state is reinitialized on every ca
 
 ### API
 
-#### `YRuby.new(parser) -> YRuby`
+#### `YRuby.new(parser = YRuby::Parser.new) -> YRuby`
 
-Creates a new VM instance.
+Creates a new VM instance. Uses the default Prism-based parser if none is provided.
 
-| Parameter | Type           | Description                        |
-|-----------|----------------|------------------------------------|
-| `parser`  | `YRuby::Parser` | Parser instance to use for parsing |
+| Parameter | Type           | Description                                  |
+|-----------|----------------|----------------------------------------------|
+| `parser`  | `YRuby::Parser` | Parser instance to use for parsing (optional) |
 
 #### `YRuby#exec(source) -> Object`
 
@@ -55,7 +55,7 @@ Parses and executes the given Ruby source string, returning the result of the la
 | `source`  | `String` | Ruby source code to execute  |
 
 ```ruby
-vm = YRuby.new(YRuby::Parser.new)
+vm = YRuby.new
 
 # Literals
 vm.exec("42")           # => 42
@@ -69,14 +69,35 @@ vm.exec("4 * 5")        # => 20
 vm.exec("10 / 2")       # => 5
 
 # Local variables
-vm.exec("a = 10; a + 1") # => 11
+vm.exec(<<~RUBY)        # => 11
+  a = 10
+  a + 1
+RUBY
 
 # Conditionals
-vm.exec("if true; 1; else; 2; end")          # => 1
-vm.exec("if false; 1; elsif true; 2; end")   # => 2
+vm.exec(<<~RUBY)        # => 1
+  if true
+    1
+  else
+    2
+  end
+RUBY
+
+vm.exec(<<~RUBY)        # => 2
+  if false
+    1
+  elsif true
+    2
+  end
+RUBY
 
 # Method definition and call
-vm.exec("def add(a, b); a + b; end; add(1, 2)") # => 3
+vm.exec(<<~RUBY)        # => 3
+  def add(a, b)
+    a + b
+  end
+  add(1, 2)
+RUBY
 ```
 
 #### `YRuby::Parser#parse(source) -> Prism::ParseResult`
@@ -96,7 +117,8 @@ Compiles a method definition node into an instruction sequence.
 Returns a human-readable disassembly of the instruction sequence. Useful for debugging and learning.
 
 ```ruby
-iseq = YRuby::Iseq.iseq_new_main(YRuby::Parser.new.parse("1 + 2"))
+parser = YRuby::Parser.new
+iseq = YRuby::Iseq.iseq_new_main(parser.parse("1 + 2"))
 puts iseq.disasm
 # 0000 putobject          1
 # 0002 putobject          2
