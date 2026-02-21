@@ -11,7 +11,7 @@ class YRuby
 
   attr_reader :ec
 
-  def initialize(parser)
+  def initialize(parser = Parser.new)
     @parser = parser
   end
 
