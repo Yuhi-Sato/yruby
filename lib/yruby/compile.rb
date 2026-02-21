@@ -24,7 +24,7 @@ class YRuby
     private
 
     def insert_local_index(index_lookup_table, locals)
-      locals.reverse_each.with_index do |local, index|
+      locals.reverse_each.with_index(1) do |local, index|
         index_lookup_table[local] = index
       end
     end

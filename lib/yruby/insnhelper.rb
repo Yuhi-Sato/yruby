@@ -49,7 +49,8 @@ class YRuby
     # Control Frame
     def push_frame(iseq:, type: FRAME_TYPE_TOP, self_value: nil, sp:)
       sp = sp + iseq.local_table_size
-      ep = sp - 1
+      ep = sp       # EP は EP special value スロット（ローカル変数領域の1つ上）を指す
+      sp = sp + 1   # SP は EP の1つ上
 
       cf = ControlFrame.new(iseq:, pc: 0, sp:, ep:, type:, self_value:)
       frames.push(cf)
@@ -91,7 +92,7 @@ class YRuby
 
       local_only_size = method_iseq.local_table_size - method_iseq.argc
       local_only_size.times do |i|
-        env_write(-i, nil)
+        env_write(-(i + 1), nil)
       end
     end
 
