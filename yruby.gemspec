@@ -6,8 +6,8 @@ Gem::Specification.new do |spec|
   spec.name = "yruby"
   spec.version = YRuby::VERSION
   spec.authors = ["Yuhi-Sato"]
-  spec.summary = "Yet Another Ruby VM - YARV ベースの Ruby 仮想マシン実装"
-  spec.description = "YRuby は CRuby の YARV (Yet Another Ruby VM) アーキテクチャに基づく Ruby 仮想マシン実装です。Prism gem で Ruby ソースコードをパースし、スタックベースのバイトコードインタプリタで実行します。"
+  spec.summary = "Yet Another Ruby VM - a YARV-based Ruby virtual machine implementation"
+  spec.description = "YRuby is a Ruby virtual machine implementation based on CRuby's YARV (Yet Another Ruby VM) architecture. It parses Ruby source code with the Prism gem and executes it through a stack-based bytecode interpreter."
   spec.homepage = "https://github.com/Yuhi-Sato/yruby"
   spec.license = "MIT"
 

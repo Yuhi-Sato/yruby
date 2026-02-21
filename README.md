@@ -1,30 +1,30 @@
-## プロジェクト概要
+## Overview
 
-YRubyはCRubyのYARV (Yet Another Ruby VM) アーキテクチャに基づくRuby仮想マシン実装です。Prism gemでパースし、スタックベースのバイトコードインタプリタを実装しています。
+YRuby is a Ruby virtual machine implementation based on CRuby's YARV (Yet Another Ruby VM) architecture. It parses Ruby source code with the Prism gem and executes it through a stack-based bytecode interpreter.
 
-## アーキテクチャ
+## Architecture
 
-### 実行フロー
+### Execution Flow
 ```
-ソースコード → Parser (Prism) → AST → Compile → Iseq → VM実行 → 結果
+Source Code → Parser (Prism) → AST → Compile → Iseq → VM Execution → Result
 ```
 
-### ディレクトリ構造 (YRuby ↔ CRuby 対応)
+### Directory Structure (YRuby ↔ CRuby mapping)
 
 ```
 lib/
-├── yruby.rb                    #   vm.c, vm_exec.c (VM本体、実行ループ)
+├── yruby.rb                    #   vm.c, vm_exec.c (VM core, execution loop)
 └── yruby/
-    ├── core.rb                 #   vm_core.h (データ構造定義、依存関係の起点)
+    ├── core.rb                 #   vm_core.h (data structure definitions, dependency root)
     │   ├── ExecutionContext    #    └─ rb_execution_context_struct
     │   └── ControlFrame        #    └─ rb_control_frame_struct
-    ├── insnhelper.rb           #   vm_insnhelper.c (スタック操作、フレーム操作)
-    ├── parser.rb               #   parse.y (Prismラッパー)
-    ├── compile.rb              #   compile.c (ASTからバイトコードへ)
-    ├── iseq.rb                 #   iseq.c, iseq.h (命令シーケンス)
-    ├── insns.rb                #   insns.def (命令定義の集約)
-    └── insns/                  #   insns.def (個別命令の実装)
-        ├── putobject.rb        #   スタックに値をpush
-        ├── putnil.rb           #   スタックにnilをpush
-        └── leave.rb            #   フレームから抜けて戻り値を返す
+    ├── insnhelper.rb           #   vm_insnhelper.c (stack operations, frame operations)
+    ├── parser.rb               #   parse.y (Prism wrapper)
+    ├── compile.rb              #   compile.c (AST to bytecode)
+    ├── iseq.rb                 #   iseq.c, iseq.h (instruction sequence)
+    ├── insns.rb                #   insns.def (instruction definition aggregation)
+    └── insns/                  #   insns.def (individual instruction implementations)
+        ├── putobject.rb        #   push a value onto the stack
+        ├── putnil.rb           #   push nil onto the stack
+        └── leave.rb            #   exit the frame and return a value
 ```
