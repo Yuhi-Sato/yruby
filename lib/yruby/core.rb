@@ -15,6 +15,5 @@ class YRuby
   ControlFrame = Struct.new(:iseq, :pc, :sp, :ep, :type, :self_value, keyword_init: true)
   ExecutionContext = Struct.new(:stack, :stack_size, :cfp, :frames, keyword_init: true)
 
-  CallInfo = Struct.new(:mid, :argc, keyword_init: true)
-  CallData = Struct.new(:ci, keyword_init: true)
+  CallData = Struct.new(:mid, :argc, keyword_init: true)
 end
