@@ -28,7 +28,7 @@ class TestMethodDefinition < YRubyTestCase
   end
 
   def test_method_definition_returns_method_name_as_symbol
-    # def add(a,b); end の戻り値は :add (Putobject で push している)
+    # return value of def add(a,b); end is :add (pushed via Putobject)
     assert_equal :add, exec("def add(a, b); a + b; end")
   end
 
