@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative 'yruby/version'
 require_relative 'yruby/core'
 require_relative 'yruby/rclass'
 require_relative 'yruby/robject'
