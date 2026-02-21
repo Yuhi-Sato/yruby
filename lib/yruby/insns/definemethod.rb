@@ -3,13 +3,10 @@
 class YRuby
   module Insns
     class Definemethod < Base
-      def initialize(mid, iseq)
-        @mid = mid
-        @iseq = iseq
-      end
+      LEN = 3
 
-      def call(vm)
-        vm.define_method(@mid, @iseq)
+      def self.call(vm, mid, iseq)
+        vm.define_method(mid, iseq)
       end
     end
   end

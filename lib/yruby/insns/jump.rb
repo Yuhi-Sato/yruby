@@ -3,12 +3,10 @@
 class YRuby
   module Insns
     class Jump < Base
-      def initialize(dst)
-        @dst = dst
-      end
+      LEN = 2
 
-      def call(vm)
-        vm.set_pc(@dst)
+      def self.call(vm, dst)
+        vm.add_pc(dst)
       end
     end
   end

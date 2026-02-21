@@ -10,7 +10,7 @@ class YRuby
 
         Compile.new.iseq_compile_node(iseq, node)
 
-        iseq.emit(Insns::Leave.new)
+        iseq.emit(Insns::Leave)
 
         iseq
       end
@@ -20,7 +20,7 @@ class YRuby
 
         Compile.new.iseq_compile_method(iseq, def_node)
 
-        iseq.emit(Insns::Leave.new)
+        iseq.emit(Insns::Leave)
 
         params = def_node.parameters
         iseq.argc = params ? params.requireds.size : 0
@@ -38,8 +38,20 @@ class YRuby
       @argc = 0
     end
 
-    def emit(insn)
-      @iseq_encoded << insn
+    def emit(insn_class, *operands)
+      @iseq_encoded << insn_class
+      operands.each { |op| @iseq_encoded << op }
+    end
+
+    def emit_placeholder(len)
+      len.times { @iseq_encoded << nil }
+    end
+
+    def patch_at!(pc, insn_class, *operands)
+      @iseq_encoded[pc] = insn_class
+      operands.each_with_index do |op, i|
+        @iseq_encoded[pc + 1 + i] = op
+      end
     end
 
     def fetch(pc)
@@ -50,16 +62,22 @@ class YRuby
       @iseq_encoded.size
     end
 
-    def set_insn_at!(pc, insn)
-      @iseq_encoded[pc] = insn
-    end
-
     def disasm
       lines = []
       lines << "== disasm: #<ISeq:<main>@<compiled>:1> =="
 
-      @iseq_encoded.each_with_index do |insn, idx|
-        lines << format("%04d %s", idx, insn.disasm)
+      pc = 0
+      while pc < @iseq_encoded.size
+        insn_class = @iseq_encoded[pc]
+        len = insn_class::LEN
+        operands = @iseq_encoded[pc + 1, len - 1]
+        name = insn_class.name.split('::').last.downcase
+        if operands.empty?
+          lines << format("%04d %s", pc, name)
+        else
+          lines << format("%04d %s %s", pc, name, operands.map(&:inspect).join(', '))
+        end
+        pc += len
       end
 
       lines.join("\n")

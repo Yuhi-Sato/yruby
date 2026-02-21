@@ -3,12 +3,10 @@
 class YRuby
   module Insns
     class Getlocal < Base
-      def initialize(idx)
-        @idx = idx
-      end
+      LEN = 2
 
-      def call(vm)
-        val = vm.env_read(-@idx)
+      def self.call(vm, idx)
+        val = vm.env_read(-idx)
         vm.push(val)
       end
     end

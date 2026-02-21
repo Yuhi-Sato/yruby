@@ -3,13 +3,11 @@
 class YRuby
   module Insns
     class Setlocal < Base
-      def initialize(idx)
-        @idx = idx
-      end
+      LEN = 2
 
-      def call(vm)
+      def self.call(vm, idx)
         val = vm.pop
-        vm.env_write(-@idx, val)
+        vm.env_write(-idx, val)
       end
     end
   end

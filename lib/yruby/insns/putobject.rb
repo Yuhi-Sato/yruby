@@ -3,12 +3,10 @@
 class YRuby
   module Insns
     class Putobject < Base
-      def initialize(value)
-        @value = value
-      end
+      LEN = 2
 
-      def call(vm)
-        vm.push(@value)
+      def self.call(vm, value)
+        vm.push(value)
       end
     end
   end

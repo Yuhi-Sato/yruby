@@ -3,12 +3,10 @@
 class YRuby
   module Insns
     class OptSendWithoutBlock < Base
-      def initialize(cd)
-        @cd = cd
-      end
+      LEN = 2
 
-      def call(vm)
-        vm.sendish(@cd)
+      def self.call(vm, cd)
+        vm.sendish(cd)
       end
     end
   end
