@@ -77,7 +77,7 @@ class YRuby
           compile_node(iseq, node.arguments)
           argc = node.arguments.arguments.size
         end
-        cd = CallData.new(ci: CallInfo.new(mid: node.name, argc:))
+        cd = CallData.new(mid: node.name, argc:)
         iseq.emit(YRuby::Insns::OptSendWithoutBlock, cd)
       else
         compile_node(iseq, node.receiver)

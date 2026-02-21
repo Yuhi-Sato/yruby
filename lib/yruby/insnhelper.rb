@@ -96,15 +96,13 @@ class YRuby
     end
 
     def sendish(cd)
-      ci = cd.ci
-
-      argc = ci.argc
+      argc = cd.argc
       recv = topn(argc + 1)
 
       klass = recv.klass
-      method_iseq = klass.search_method(ci.mid)
+      method_iseq = klass.search_method(cd.mid)
 
-      raise "undefined method #{ci.mid}" if method_iseq.nil?
+      raise "undefined method #{cd.mid}" if method_iseq.nil?
 
       call_iseq_setup(recv, argc, method_iseq)
     end
