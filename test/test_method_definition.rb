@@ -35,4 +35,8 @@ class TestMethodDefinition < YRubyTestCase
   def test_method_using_parameters_in_expression
     assert_equal 6, exec("def mul(a, b); a + a + b + b; end; mul(1, 2)")
   end
+
+  def test_method_with_local_variable
+    assert_equal 30, exec("def foo(a, b); c = a + b; c + c; end; foo(10, 5)")
+  end
 end
