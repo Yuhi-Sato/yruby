@@ -17,7 +17,7 @@ class YRuby
       if def_node.body
         compile_node(iseq, def_node.body)
       else
-        iseq.emit(YRuby::Insns::Putnil.new)
+        iseq.emit(YRuby::Insns::Putnil)
       end
     end
 
@@ -41,25 +41,25 @@ class YRuby
       when Prism::StatementsNode
         node.body.each { |stmt| compile_node(iseq, stmt) }
       when Prism::IntegerNode
-        iseq.emit(YRuby::Insns::Putobject.new(node.value))
+        iseq.emit(YRuby::Insns::Putobject, node.value)
       when Prism::NilNode
-        iseq.emit(YRuby::Insns::Putnil.new)
+        iseq.emit(YRuby::Insns::Putnil)
       when Prism::TrueNode
-        iseq.emit(YRuby::Insns::Putobject.new(true))
+        iseq.emit(YRuby::Insns::Putobject, true)
       when Prism::FalseNode
-        iseq.emit(YRuby::Insns::Putobject.new(false))
+        iseq.emit(YRuby::Insns::Putobject, false)
       when Prism::CallNode
         compile_call_node(iseq, node)
       when Prism::ArgumentsNode
         node.arguments.each { |arg| compile_node(iseq, arg) }
       when Prism::LocalVariableWriteNode
         compile_node(iseq, node.value)
-        iseq.emit(YRuby::Insns::Dup.new)
+        iseq.emit(YRuby::Insns::Dup)
         idx = @index_lookup_table[node.name]
-        iseq.emit(YRuby::Insns::Setlocal.new(idx))
+        iseq.emit(YRuby::Insns::Setlocal, idx)
       when Prism::LocalVariableReadNode
         idx = @index_lookup_table[node.name]
-        iseq.emit(YRuby::Insns::Getlocal.new(idx))
+        iseq.emit(YRuby::Insns::Getlocal, idx)
       when Prism::IfNode
         compile_conditional_node(iseq, node)
       when Prism::DefNode
@@ -71,21 +71,23 @@ class YRuby
 
     def compile_call_node(iseq, node)
       if node.receiver.nil?
-        iseq.emit(YRuby::Insns::Putself.new)
+        iseq.emit(YRuby::Insns::Putself)
         argc = 0
         if node.arguments
           compile_node(iseq, node.arguments)
           argc = node.arguments.arguments.size
         end
         cd = CallData.new(ci: CallInfo.new(mid: node.name, argc:))
-        iseq.emit(YRuby::Insns::OptSendWithoutBlock.new(cd))
+        iseq.emit(YRuby::Insns::OptSendWithoutBlock, cd)
       else
         compile_node(iseq, node.receiver)
         compile_node(iseq, node.arguments)
 
         case node.name
-        when :+; iseq.emit(YRuby::Insns::OptPlus.new)
-        when :-; iseq.emit(YRuby::Insns::OptMinus.new)
+        when :+; iseq.emit(YRuby::Insns::OptPlus)
+        when :-; iseq.emit(YRuby::Insns::OptMinus)
+        when :*; iseq.emit(YRuby::Insns::OptMult)
+        when :/; iseq.emit(YRuby::Insns::OptDiv)
         else
           raise "Unknown operator: #{node.name}"
         end
@@ -94,23 +96,24 @@ class YRuby
 
     def compile_def_node(iseq, node)
       method_iseq = YRuby::Iseq.iseq_new_method(node)
-      iseq.emit(YRuby::Insns::Definemethod.new(node.name, method_iseq))
-      iseq.emit(YRuby::Insns::Putobject.new(node.name))
+      iseq.emit(YRuby::Insns::Definemethod, node.name, method_iseq)
+      iseq.emit(YRuby::Insns::Putobject, node.name)
     end
 
     def compile_conditional_node(iseq, node)
       compile_node(iseq, node.predicate)
       branchunless_pc = iseq.size
-      iseq.emit(nil) # branchunless to else_label
+      iseq.emit_placeholder(YRuby::Insns::Branchunless::LEN)
 
       # then statements
       compile_node(iseq, node.statements)
 
       then_end_pc = iseq.size
-      iseq.emit(nil) # jump to end_label
+      iseq.emit_placeholder(YRuby::Insns::Jump::LEN)
 
       else_label = iseq.size
-      iseq.set_insn_at!(branchunless_pc, YRuby::Insns::Branchunless.new(else_label))
+      branchunless_offset = else_label - (branchunless_pc + YRuby::Insns::Branchunless::LEN)
+      iseq.patch_at!(branchunless_pc, YRuby::Insns::Branchunless, branchunless_offset)
 
       # elsif / else statements
       case node.subsequent
@@ -121,7 +124,8 @@ class YRuby
       end
 
       end_label = iseq.size
-      iseq.set_insn_at!(then_end_pc, YRuby::Insns::Jump.new(end_label))
+      jump_offset = end_label - (then_end_pc + YRuby::Insns::Jump::LEN)
+      iseq.patch_at!(then_end_pc, YRuby::Insns::Jump, jump_offset)
     end
   end
 end

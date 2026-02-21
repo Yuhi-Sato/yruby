@@ -3,7 +3,7 @@
 class YRuby
   module Insns
     class Leave < Base
-      def call(vm)
+      def self.call(vm)
         val = vm.topn(1)
         vm.pop
 

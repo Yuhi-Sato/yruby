@@ -38,9 +38,11 @@ class YRuby
 
     catch(:finish) do
       loop do
-        insn = cfp.iseq.fetch(cfp.pc)
-        add_pc(1)
-        insn.call(self)
+        insn_class = cfp.iseq.fetch(cfp.pc)
+        len = insn_class::LEN
+        operands = (1...len).map { |i| cfp.iseq.fetch(cfp.pc + i) }
+        add_pc(len)
+        insn_class.call(self, *operands)
       end
     end
   end

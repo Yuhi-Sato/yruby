@@ -3,7 +3,7 @@
 class YRuby
   module Insns
     class Putnil < Base
-      def call(vm)
+      def self.call(vm)
         vm.push(nil)
       end
     end

@@ -3,17 +3,13 @@
 class YRuby
   module Insns
     class Branchunless < Base
-      def initialize(dst)
-        @dst = dst
-      end
+      LEN = 2
 
-      def call(vm)
+      def self.call(vm, dst)
         val = vm.topn(1)
         vm.pop
 
-        if !val
-          vm.set_pc(@dst)
-        end
+        vm.add_pc(dst) unless val
       end
     end
   end
