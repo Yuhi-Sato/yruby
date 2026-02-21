@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative 'yruby/version'
 require_relative 'yruby/core'
 require_relative 'yruby/rclass'
 require_relative 'yruby/robject'
@@ -10,7 +11,7 @@ class YRuby
 
   attr_reader :ec
 
-  def initialize(parser)
+  def initialize(parser = Parser.new)
     @parser = parser
   end
 

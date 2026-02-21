@@ -1,30 +1,199 @@
-## プロジェクト概要
+# YRuby
 
-YRubyはCRubyのYARV (Yet Another Ruby VM) アーキテクチャに基づくRuby仮想マシン実装です。Prism gemでパースし、スタックベースのバイトコードインタプリタを実装しています。
+YRuby is a Ruby virtual machine implementation based on CRuby's YARV (Yet Another Ruby VM) architecture. It parses Ruby source code with the [Prism](https://github.com/ruby/prism) gem and executes it through a stack-based bytecode interpreter.
 
-## アーキテクチャ
+## Installation
 
-### 実行フロー
+Add this line to your application's Gemfile:
+
+```ruby
+gem 'yruby'
 ```
-ソースコード → Parser (Prism) → AST → Compile → Iseq → VM実行 → 結果
+
+Or install it directly:
+
+```
+$ gem install yruby
 ```
 
-### ディレクトリ構造 (YRuby ↔ CRuby 対応)
+## Requirements
+
+- Ruby >= 3.3.0
+- [prism](https://rubygems.org/gems/prism) ~> 1.0
+
+## Usage
+
+### Basic Usage
+
+```ruby
+require 'yruby'
+
+vm = YRuby.new
+
+vm.exec("1 + 2")           # => 3
+vm.exec("if true; 42; end") # => 42
+```
+
+Each call to `exec` is independent — the VM state is reinitialized on every call.
+
+### API
+
+#### `YRuby.new(parser = YRuby::Parser.new) -> YRuby`
+
+Creates a new VM instance. Uses the default Prism-based parser if none is provided.
+
+| Parameter | Type           | Description                                  |
+|-----------|----------------|----------------------------------------------|
+| `parser`  | `YRuby::Parser` | Parser instance to use for parsing (optional) |
+
+#### `YRuby#exec(source) -> Object`
+
+Parses and executes the given Ruby source string, returning the result of the last evaluated expression.
+
+| Parameter | Type     | Description                  |
+|-----------|----------|------------------------------|
+| `source`  | `String` | Ruby source code to execute  |
+
+```ruby
+vm = YRuby.new
+
+# Literals
+vm.exec("42")           # => 42
+vm.exec("nil")          # => nil
+vm.exec("true")         # => true
+
+# Arithmetic
+vm.exec("1 + 2")        # => 3
+vm.exec("10 - 3")       # => 7
+vm.exec("4 * 5")        # => 20
+vm.exec("10 / 2")       # => 5
+
+# Local variables
+vm.exec(<<~RUBY)        # => 11
+  a = 10
+  a + 1
+RUBY
+
+# Conditionals
+vm.exec(<<~RUBY)        # => 1
+  if true
+    1
+  else
+    2
+  end
+RUBY
+
+vm.exec(<<~RUBY)        # => 2
+  if false
+    1
+  elsif true
+    2
+  end
+RUBY
+
+# Method definition and call
+vm.exec(<<~RUBY)        # => 3
+  def add(a, b)
+    a + b
+  end
+  add(1, 2)
+RUBY
+```
+
+#### `YRuby::Parser#parse(source) -> Prism::ParseResult`
+
+Parses Ruby source code and returns a Prism AST result. This is used internally by `YRuby#exec` and is rarely needed directly.
+
+#### `YRuby::Iseq.iseq_new_main(ast) -> YRuby::Iseq`
+
+Compiles a Prism AST into an instruction sequence for the top-level scope.
+
+#### `YRuby::Iseq.iseq_new_method(def_node) -> YRuby::Iseq`
+
+Compiles a method definition node into an instruction sequence.
+
+#### `YRuby::Iseq#disasm -> String`
+
+Returns a human-readable disassembly of the instruction sequence. Useful for debugging and learning.
+
+```ruby
+parser = YRuby::Parser.new
+iseq = YRuby::Iseq.iseq_new_main(parser.parse("1 + 2"))
+puts iseq.disasm
+# 0000 putobject          1
+# 0002 putobject          2
+# 0004 opt_plus
+# 0005 leave
+```
+
+## Supported Ruby Features
+
+| Feature                        | Example                                      |
+|-------------------------------|----------------------------------------------|
+| Integer literals              | `42`, `0`, `-1`                              |
+| Boolean / nil literals        | `true`, `false`, `nil`                       |
+| Arithmetic operators          | `a + b`, `a - b`, `a * b`, `a / b`          |
+| Local variable read/write     | `a = 1; a`                                   |
+| `if` / `else` / `elsif`       | `if cond; ...; elsif ...; else; ...; end`    |
+| `if` as expression            | `x = if true; 1; else; 2; end`              |
+| Method definition             | `def add(a, b); a + b; end`                  |
+| Method call                   | `add(1, 2)`                                  |
+| Multiple statements           | `1; 2; 3`                                    |
+
+## Instruction Set
+
+YRuby implements the following YARV-like instructions:
+
+| Instruction              | Operands    | Description                                   |
+|--------------------------|-------------|-----------------------------------------------|
+| `putobject`              | `value`     | Push a constant value onto the stack          |
+| `putnil`                 | —           | Push `nil` onto the stack                     |
+| `putself`                | —           | Push the current receiver onto the stack      |
+| `dup`                    | —           | Duplicate the top of the stack                |
+| `getlocal`               | `idx`       | Push a local variable value onto the stack    |
+| `setlocal`               | `idx`       | Pop and store a value into a local variable   |
+| `opt_plus`               | —           | Pop two values and push their sum             |
+| `opt_minus`              | —           | Pop two values and push their difference      |
+| `opt_mult`               | —           | Pop two values and push their product         |
+| `opt_div`                | —           | Pop two values and push their quotient        |
+| `branchunless`           | `offset`    | Jump if the popped value is falsy             |
+| `jump`                   | `offset`    | Unconditional jump                            |
+| `definemethod`           | `mid, iseq` | Register a method on the current object       |
+| `opt_send_without_block` | `cd`        | Dispatch a method call                        |
+| `leave`                  | —           | Exit the current frame and return a value     |
+
+## Architecture
+
+```
+Source Code → Parser (Prism) → AST → Compile → Iseq → VM Execution → Result
+```
+
+### CRuby Mapping
+
+The internal structure mirrors CRuby's implementation:
 
 ```
 lib/
-├── yruby.rb                    #   vm.c, vm_exec.c (VM本体、実行ループ)
+├── yruby.rb              # vm.c, vm_exec.c   — VM core and execution loop
 └── yruby/
-    ├── core.rb                 #   vm_core.h (データ構造定義、依存関係の起点)
-    │   ├── ExecutionContext    #    └─ rb_execution_context_struct
-    │   └── ControlFrame        #    └─ rb_control_frame_struct
-    ├── insnhelper.rb           #   vm_insnhelper.c (スタック操作、フレーム操作)
-    ├── parser.rb               #   parse.y (Prismラッパー)
-    ├── compile.rb              #   compile.c (ASTからバイトコードへ)
-    ├── iseq.rb                 #   iseq.c, iseq.h (命令シーケンス)
-    ├── insns.rb                #   insns.def (命令定義の集約)
-    └── insns/                  #   insns.def (個別命令の実装)
-        ├── putobject.rb        #   スタックに値をpush
-        ├── putnil.rb           #   スタックにnilをpush
-        └── leave.rb            #   フレームから抜けて戻り値を返す
+    ├── core.rb           # vm_core.h         — ExecutionContext, ControlFrame
+    ├── insnhelper.rb     # vm_insnhelper.c   — stack/frame/env operations
+    ├── parser.rb         # parse.y           — Prism wrapper
+    ├── compile.rb        # compile.c         — AST → bytecode compiler
+    ├── iseq.rb           # iseq.c / iseq.h   — instruction sequence
+    ├── rclass.rb         #                   — class and method table
+    ├── robject.rb        #                   — object instances
+    ├── insns.rb          # insns.def         — instruction aggregation
+    └── insns/            # insns.def         — individual instruction classes
 ```
+
+## Development
+
+```
+$ bundle install
+$ bundle exec rake test
+```
+
+## License
+
+[MIT](LICENSE)

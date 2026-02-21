@@ -18,7 +18,11 @@ class TestLiterals < YRubyTestCase
   end
 
   def test_statements
-    assert_equal 42, exec("42; 42; 42")
+    assert_equal 42, exec(<<~RUBY)
+      42
+      42
+      42
+    RUBY
   end
 
   def test_nil
@@ -26,7 +30,11 @@ class TestLiterals < YRubyTestCase
   end
 
   def test_nil_statements
-    assert_nil exec("nil; 42; nil")
+    assert_nil exec(<<~RUBY)
+      nil
+      42
+      nil
+    RUBY
   end
 
   def test_true
@@ -34,7 +42,11 @@ class TestLiterals < YRubyTestCase
   end
 
   def test_true_statements
-    assert_equal true, exec("true; 42; true")
+    assert_equal true, exec(<<~RUBY)
+      true
+      42
+      true
+    RUBY
   end
 
   def test_false
@@ -42,6 +54,10 @@ class TestLiterals < YRubyTestCase
   end
 
   def test_false_statements
-    assert_equal false, exec("false; 42; false")
+    assert_equal false, exec(<<~RUBY)
+      false
+      42
+      false
+    RUBY
   end
 end
