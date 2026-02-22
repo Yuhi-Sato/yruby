@@ -35,7 +35,7 @@ class YRuby
   end
 
   def exec_core(iseq)
-    push_frame(iseq:, type: FRAME_TYPE_TOP, self_value: @top_self, sp: 0)
+    push_frame(iseq:, type: FRAME_TYPE_TOP, self_value: @top_self, sp: 0, local_size: iseq.local_table_size)
 
     catch(:finish) do
       loop do

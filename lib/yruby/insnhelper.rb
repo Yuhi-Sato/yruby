@@ -47,7 +47,10 @@ class YRuby
     end
 
     # Control Frame
-    def push_frame(iseq:, type: FRAME_TYPE_TOP, self_value: nil, sp:)
+    def push_frame(iseq:, type: FRAME_TYPE_TOP, self_value: nil, sp:, local_size:)
+      local_start = sp + iseq.local_table_size - local_size
+      local_size.times { |i| stack[local_start + i] = nil }
+
       sp = sp + iseq.local_table_size
       ep = sp - 1
 
@@ -86,13 +89,9 @@ class YRuby
         iseq: method_iseq,
         type: FRAME_TYPE_METHOD,
         self_value: recv,
-        sp: argv_index
+        sp: argv_index,
+        local_size: method_iseq.local_table_size - method_iseq.argc
       )
-
-      local_only_size = method_iseq.local_table_size - method_iseq.argc
-      local_only_size.times do |i|
-        env_write(-i, nil)
-      end
     end
 
     def sendish(cd)
