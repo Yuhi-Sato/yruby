@@ -2,6 +2,8 @@
 
 class YRuby
   class Compile
+    attr_reader :index_lookup_table
+
     def iseq_compile_node(iseq, node)
       @index_lookup_table = {}
       insert_local_index(@index_lookup_table, node.locals)
@@ -21,18 +23,9 @@ class YRuby
       end
     end
 
-    private
-
-    def insert_local_index(index_lookup_table, locals)
-      locals.reverse_each.with_index do |local, index|
-        index_lookup_table[local] = index
-      end
-    end
-
-    def iseq_set_local_table(iseq, locals)
-      iseq.local_table_size = locals.size
-      iseq.local_table = locals.dup
-    end
+    # ============================================================
+    # Main dispatch — delegates to individual compile methods
+    # ============================================================
 
     def compile_node(iseq, node)
       case node
@@ -41,7 +34,7 @@ class YRuby
       when Prism::StatementsNode
         node.body.each { |stmt| compile_node(iseq, stmt) }
       when Prism::IntegerNode
-        iseq.emit(YRuby::Insns::Putobject, node.value)
+        compile_integer_node(iseq, node)
       when Prism::NilNode
         iseq.emit(YRuby::Insns::Putnil)
       when Prism::TrueNode
@@ -49,17 +42,13 @@ class YRuby
       when Prism::FalseNode
         iseq.emit(YRuby::Insns::Putobject, false)
       when Prism::CallNode
-        compile_call_node(iseq, node)
+        compile_call_node_dispatch(iseq, node)
       when Prism::ArgumentsNode
         node.arguments.each { |arg| compile_node(iseq, arg) }
       when Prism::LocalVariableWriteNode
-        compile_node(iseq, node.value)
-        iseq.emit(YRuby::Insns::Dup)
-        idx = @index_lookup_table[node.name]
-        iseq.emit(YRuby::Insns::Setlocal, idx)
+        compile_local_var_write(iseq, node)
       when Prism::LocalVariableReadNode
-        idx = @index_lookup_table[node.name]
-        iseq.emit(YRuby::Insns::Getlocal, idx)
+        compile_local_var_read(iseq, node)
       when Prism::IfNode
         compile_conditional_node(iseq, node)
       when Prism::DefNode
@@ -69,29 +58,75 @@ class YRuby
       end
     end
 
-    def compile_call_node(iseq, node)
+    # ============================================================
+    # Individual compile methods (overridable by monkey-patching)
+    # ============================================================
+
+    def compile_integer_node(iseq, node)
+      iseq.emit(YRuby::Insns::Putobject, node.value)
+    end
+
+    def compile_local_var_write(iseq, node)
+      compile_node(iseq, node.value)
+      iseq.emit(YRuby::Insns::Dup)
+      idx = @index_lookup_table[node.name]
+      iseq.emit(YRuby::Insns::Setlocal, idx)
+    end
+
+    def compile_local_var_read(iseq, node)
+      idx = @index_lookup_table[node.name]
+      iseq.emit(YRuby::Insns::Getlocal, idx)
+    end
+
+    # Dispatch binary ops to individual methods; receiverless calls to compile_general_call
+    def compile_call_node_dispatch(iseq, node)
       if node.receiver.nil?
-        iseq.emit(YRuby::Insns::Putself)
-        argc = 0
-        if node.arguments
-          compile_node(iseq, node.arguments)
-          argc = node.arguments.arguments.size
-        end
-        cd = CallData.new(mid: node.name, argc:)
-        iseq.emit(YRuby::Insns::OptSendWithoutBlock, cd)
+        compile_general_call(iseq, node)
       else
         compile_node(iseq, node.receiver)
         compile_node(iseq, node.arguments)
 
         case node.name
-        when :+; iseq.emit(YRuby::Insns::OptPlus)
-        when :-; iseq.emit(YRuby::Insns::OptMinus)
-        when :*; iseq.emit(YRuby::Insns::OptMult)
-        when :/; iseq.emit(YRuby::Insns::OptDiv)
+        when :+  then compile_binary_plus(iseq, node)
+        when :-  then compile_binary_minus(iseq, node)
+        when :*  then compile_binary_mult(iseq, node)
+        when :/  then compile_binary_div(iseq, node)
+        when :<  then compile_binary_lt(iseq, node)
         else
           raise "Unknown operator: #{node.name}"
         end
       end
+    end
+
+    def compile_binary_plus(iseq, node)
+      iseq.emit(YRuby::Insns::OptPlus)
+    end
+
+    def compile_binary_minus(iseq, node)
+      iseq.emit(YRuby::Insns::OptMinus)
+    end
+
+    def compile_binary_mult(iseq, node)
+      iseq.emit(YRuby::Insns::OptMult)
+    end
+
+    def compile_binary_div(iseq, node)
+      iseq.emit(YRuby::Insns::OptDiv)
+    end
+
+    def compile_binary_lt(iseq, node)
+      iseq.emit(YRuby::Insns::OptLt)
+    end
+
+    def compile_general_call(iseq, node)
+      iseq.emit(YRuby::Insns::Putself)
+      argc = 0
+      if node.arguments
+        compile_node(iseq, node.arguments)
+        argc = node.arguments.arguments.size
+      end
+      cd = CallData.new(mid: node.name, argc:)
+      iseq.emit(YRuby::Insns::OptSendWithoutBlock, cd)
     end
 
     def compile_def_node(iseq, node)
@@ -116,16 +151,29 @@ class YRuby
       iseq.patch_at!(branchunless_pc, YRuby::Insns::Branchunless, branchunless_offset)
 
       # elsif / else statements
-      case node.subsequent
+      case node.consequent
       when Prism::IfNode
-        compile_conditional_node(iseq, node.subsequent)
+        compile_conditional_node(iseq, node.consequent)
       when Prism::ElseNode
-        compile_node(iseq, node.subsequent.statements)
+        compile_node(iseq, node.consequent.statements)
       end
 
       end_label = iseq.size
       jump_offset = end_label - (then_end_pc + YRuby::Insns::Jump::LEN)
       iseq.patch_at!(then_end_pc, YRuby::Insns::Jump, jump_offset)
+    end
+
+    private
+
+    def insert_local_index(index_lookup_table, locals)
+      locals.reverse_each.with_index do |local, index|
+        index_lookup_table[local] = index
+      end
+    end
+
+    def iseq_set_local_table(iseq, locals)
+      iseq.local_table_size = locals.size
+      iseq.local_table = locals.dup
     end
   end
 end

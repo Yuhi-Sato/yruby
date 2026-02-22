@@ -71,7 +71,8 @@ class YRuby
         insn_class = @iseq_encoded[pc]
         len = insn_class::LEN
         operands = @iseq_encoded[pc + 1, len - 1]
-        name = insn_class.name.split('::').last.downcase
+        name = insn_class.name.split('::').last
+          .gsub(/([a-z\d])([A-Z])/, '\1_\2').downcase
         if operands.empty?
           lines << format("%04d %s", pc, name)
         else
