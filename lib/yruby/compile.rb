@@ -87,6 +87,12 @@ class YRuby
       when :-; iseq.emit(YRuby::Insns::OptMinus)
       when :*; iseq.emit(YRuby::Insns::OptMult)
       when :/; iseq.emit(YRuby::Insns::OptDiv)
+      when :==; iseq.emit(YRuby::Insns::OptEq)
+      when :!=; iseq.emit(YRuby::Insns::OptNeq)
+      when :<; iseq.emit(YRuby::Insns::OptLt)
+      when :<=; iseq.emit(YRuby::Insns::OptLe)
+      when :>; iseq.emit(YRuby::Insns::OptGt)
+      when :>=; iseq.emit(YRuby::Insns::OptGe)
       else
         cd = CallData.new(mid: node.name, argc:)
         iseq.emit(YRuby::Insns::OptSendWithoutBlock, cd)
