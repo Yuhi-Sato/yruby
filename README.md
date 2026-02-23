@@ -133,6 +133,7 @@ puts iseq.disasm
 | Integer literals              | `42`, `0`, `-1`                              |
 | Boolean / nil literals        | `true`, `false`, `nil`                       |
 | Arithmetic operators          | `a + b`, `a - b`, `a * b`, `a / b`          |
+| Comparison operators          | `a == b`, `a != b`, `a < b`, `a <= b`, `a > b`, `a >= b` |
 | Local variable read/write     | `a = 1; a`                                   |
 | `if` / `else` / `elsif`       | `if cond; ...; elsif ...; else; ...; end`    |
 | `if` as expression            | `x = if true; 1; else; 2; end`              |
@@ -156,6 +157,12 @@ YRuby implements the following YARV-like instructions:
 | `opt_minus`              | —           | Pop two values and push their difference      |
 | `opt_mult`               | —           | Pop two values and push their product         |
 | `opt_div`                | —           | Pop two values and push their quotient        |
+| `opt_eq`                 | —           | Pop two values and push equality result       |
+| `opt_neq`                | —           | Pop two values and push inequality result     |
+| `opt_lt`                 | —           | Pop two values and push less-than result      |
+| `opt_le`                 | —           | Pop two values and push less-than-or-equal result |
+| `opt_gt`                 | —           | Pop two values and push greater-than result   |
+| `opt_ge`                 | —           | Pop two values and push greater-than-or-equal result |
 | `branchunless`           | `offset`    | Jump if the popped value is falsy             |
 | `jump`                   | `offset`    | Unconditional jump                            |
 | `definemethod`           | `mid, iseq` | Register a method on the current object       |
