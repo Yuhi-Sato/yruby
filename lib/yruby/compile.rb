@@ -72,25 +72,24 @@ class YRuby
     def compile_call_node(iseq, node)
       if node.receiver.nil?
         iseq.emit(YRuby::Insns::Putself)
-        argc = 0
-        if node.arguments
-          compile_node(iseq, node.arguments)
-          argc = node.arguments.arguments.size
-        end
-        cd = CallData.new(mid: node.name, argc:)
-        iseq.emit(YRuby::Insns::OptSendWithoutBlock, cd)
       else
         compile_node(iseq, node.receiver)
-        compile_node(iseq, node.arguments)
+      end
 
-        case node.name
-        when :+; iseq.emit(YRuby::Insns::OptPlus)
-        when :-; iseq.emit(YRuby::Insns::OptMinus)
-        when :*; iseq.emit(YRuby::Insns::OptMult)
-        when :/; iseq.emit(YRuby::Insns::OptDiv)
-        else
-          raise "Unknown operator: #{node.name}"
-        end
+      argc = 0
+      if node.arguments
+        compile_node(iseq, node.arguments)
+        argc = node.arguments.arguments.size
+      end
+
+      case node.name
+      when :+; iseq.emit(YRuby::Insns::OptPlus)
+      when :-; iseq.emit(YRuby::Insns::OptMinus)
+      when :*; iseq.emit(YRuby::Insns::OptMult)
+      when :/; iseq.emit(YRuby::Insns::OptDiv)
+      else
+        cd = CallData.new(mid: node.name, argc:)
+        iseq.emit(YRuby::Insns::OptSendWithoutBlock, cd)
       end
     end
 
